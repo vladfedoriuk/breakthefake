@@ -77,7 +77,7 @@ def download_article_text(url):
         "title": article_text.select("h1")[0].text,
         "content": clean_text(" ".join(full_content)),
         "url": MAIN_PAGE + url,
-        'source': 'wp'
+        'source': 'wp',
     }
     return target_json
 

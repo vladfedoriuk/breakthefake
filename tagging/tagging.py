@@ -6,12 +6,16 @@ from typing import List, Dict, Any
 import math
 import os
 import re
+import pandas as pd
+import random
+from tqdm import tqdm
 
 nlp = spacy.load("pl_core_news_sm")
 nlp.add_pipe("textrank")
 MAX_PHRASES = 5
 
 ARTICLE_SRC = "data/tvp_articles/*.json"
+ARTICLE_DST = "data/database.csv"
 emoji_pattern = re.compile(
     "["
     u"\U0001F600-\U0001F64F"  # emoticons
@@ -30,9 +34,11 @@ class MetadataExtractor:
     def __init__(self, max_phrases: int = 5, max_sents: int = 3) -> None:
         self.max_phrases = max_phrases
         self.max_sents = max_sents
+        self.rgx_set = self.extract_categories_rgx()
 
     def clean_text(self, text: str) -> str:
         forbidden_chars = (
+            '\n',
             '-',
             '– ',
             '@',
@@ -56,6 +62,7 @@ class MetadataExtractor:
         doc = nlp(article_doc["content"])
         article_doc['tags'] = self.tag_document(doc)
         article_doc['summary'] = self.extract_summary(doc)
+        article_doc['categories'] = self.find_categories(article_text)
         return article_doc
 
     def tag_document(self, doc: spacy.tokens.Doc) -> List[str]:
@@ -97,9 +104,129 @@ class MetadataExtractor:
         }
         return list(sent_text.values())
 
+    def find_categories(self, article_text: str):
+        """Use regex to find the categories of the article."""
+        article_cats = []
+        for category, rgx in self.rgx_set.items():
+            if rgx.search(article_text):
+                article_cats.append(category)
+
+        return article_cats
+
+    def extract_categories_rgx(self):
+        minsterstwo = [
+            'ministerstwo', 'minister', 'ministrowi', 'ministrze', 'ministrów',
+            'ministerstwu', 'ministerstwie', 'ministerstwa'
+        ]
+        wiceminister = ['wice' + x for x in minsterstwo]
+        rzecznik = [
+            'rzecznik',
+            'rzecznika',
+            'rzecznikowi',
+            'rzeczniczce',
+            'rzeczniczka',
+        ]
+
+        categories = {
+            'Ministerstwo Finansów': [
+                'MF',
+                'GIIF',
+                'Generalny Inspektor Informacji Finansowej',
+                'Generalnego Inspektoratu Informacji Finansowej',
+                *[x + " finansów" for x in minsterstwo],
+                *[x + " finansów" for x in wiceminister],
+                *[x + " finansów" for x in rzecznik],
+                *[x + " MF" for x in rzecznik],
+            ],
+            'finanse publiczne': [
+                'finanse publiczne', 'budżet', 'budżetu', 'budżetem',
+                'budżetowi', 'budżetach', 'finansów publicznych',
+                'finansów publicznego', 'finansów publicznego',
+                'finansów publicznym', 'finansów publicznymi',
+                'dług publiczny', 'długu publicznego', 'SRW', 'obligacje',
+                'obligacje skarbowe', 'obligacji skarbowych', 'obligacji',
+                'deficyt', 'deficytowi', 'hazard'
+            ],
+            'podatki': [
+                'podatki',
+                'podatków',
+                'podatku',
+                'podatkiem',
+                'podatkach',
+                'CIT',
+                'PIT',
+                'VAT',
+                'akcyza',
+                'akcyzie',
+                'cło',
+                'cłach',
+            ],
+            'administracja': [
+                'KAS', 'administracja skarbowa', 'administracji skarbowej',
+                'skarbowy', 'celna', 'celno-skarbowa', 'celno-skarbowej'
+            ],
+            'kpo': ['kpo', 'krajowy plan odbudowy'],
+            'projekty': [
+                'e-pit',
+                'epit',
+                'e-podatki',
+                'epodatki',
+                'e-podatków',
+                'epodatków',
+                'e-podatku',
+                'epodatku',
+                'e-podatkiem',
+                'epodatkiem',
+                'polski ład',
+                'podatek reklamowy',
+                'podatek od reklam',
+                'podatku od reklam',
+                'podatku reklamowego',
+                'finansoaktywni',
+                'polska agencja nadzoru finansowego',
+                'polska agencja nadzoru audytowego',
+                'wakacje kredytowe',
+            ],
+            'instytucje': [
+                'nbp', 'bank centralny', 'banku centralnego',
+                'narodowy bank polski', 'MFW',
+                'międzynarodowy fundusz walutowy',
+                'międzynarodowego funduszu walutowego',
+                'komisja nadzoru finansowego', 'komisji nadzoru finansowego',
+                'KNF'
+            ],
+            'oplaty': ['e-toll', 'etoll', 'viatoll', 'e-myto', 'emyto'],
+            'entities': [
+                'Rzeczkowska', 'Rzecznik Prasowy MF', 'Rzecznik Finansów',
+                'Rzecznik Finansów Publicznych', 'Chałupa', 'Patkowski',
+                'Skuza', 'Czernicki', 'Szwarc', 'Gojny', 'Soboń', 'Szweda',
+                'Zbaraszczuk', 'Pasieczyńska', 'Dudek'
+            ]
+        }
+
+        regex_cats = {}
+        for cat, entires in categories.items():
+            or_sel = "|".join(entires)
+            regex_cats[cat] = re.compile(or_sel, re.IGNORECASE)
+
+        return regex_cats
+
 
 if __name__ == "__main__":
     extractor = MetadataExtractor()
-    for json_path in glob.iglob(ARTICLE_SRC):
+    articles = []
+    all_sources = [
+        'data/tvp_articles',
+        'data/wp_articles',
+    ]
+    all_article_paths = []
+    for src in all_sources:
+        all_article_paths.extend(glob.glob(f'{src}/*.json'))
+    random.shuffle(all_article_paths)
+    for json_path in tqdm(all_article_paths):
         new_article = extractor(json_path)
-        print(new_article['summary'])
+        # print(new_article['summary'])
+        articles.append(new_article)
+
+    df = pd.DataFrame.from_records(articles)
+    df.to_csv(ARTICLE_DST, index=False)
