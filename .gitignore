@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 .DS_Store
 .stek/
 *.json
-__pycache__/
-=======
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -133,4 +130,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
->>>>>>> a4096359f38ccb9e84d0d8d42fa47b73973eaea1
