@@ -1,6 +1,5 @@
 import bs4
 import requests
-import sys
 import time
 from tqdm import tqdm
 import json
