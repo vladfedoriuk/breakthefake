@@ -1,0 +1,4 @@
+.DS_Store
+.stek/
+*.json
+__pycache__/
