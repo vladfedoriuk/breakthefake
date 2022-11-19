@@ -10,6 +10,7 @@ MAX_ENTRIES = 10
 @st.cache
 def load_data():
     data = pd.read_csv('./data/database.csv')
+    import pdb; pdb.set_trace()
     data['summary'] = data['summary'].apply(lambda x: ' '.join(x))
 
     return data
@@ -35,24 +36,13 @@ def icon(icon_name):
 
 
 def add_row(data_row):
-    st.write(f"""
-    <div class="row">
-        <div class="col s12 m6">
-            <div class="card blue-grey darken-1">
-                <div class="card-content white-text">
-                    <span class="card-title
-                    truncate">{data_row['title']}</span>
-                    <p>{data_row['summary']}</p>
-                </div>
-                <div class="card-action">
-
-                    <a href="{data_row['url']}">Link</a>
-                </div>
-            </div>
-        </div>
-    </div>
+    st.write(
+    f"""
+    ### {data_row["title"]}
+    {data_row["summary"]}
     """,
-             unsafe_allow_html=True)
+    unsafe_allow_html=True
+    )
 
 
 icon("search")
@@ -62,6 +52,7 @@ selected = st.text_input("Search", placeholder="Search...")
 button_clicked = st.button("Search", )
 data_load_state = st.text('Loading data...')
 data = load_data()
+print(data.loc[:2, "summary"])
 data_load_state.text("Done! (using st.cache)")
 main_view = st.dataframe(data, use_container_width=True)
 st.markdown(
@@ -100,5 +91,6 @@ if button_clicked:
     main_view.dataframe(view, use_container_width=True)
     # main_view = st.dataframe(view, width=None, height=None)
 
-local_css(STYLE_SHEET)
+# local_css(STYLE_SHEET)
 remote_css('https://fonts.googleapis.com/icon?family=Material+Icons')
+remote_css("ttps://unpkg.com/tachyons@4.12.0/css/tachyons.min.css")
