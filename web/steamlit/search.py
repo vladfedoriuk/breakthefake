@@ -16,11 +16,7 @@ def load_data():
 
 
 def filter_data(data, phrase):
-    if phrase:
-        view = data[data['content'].str.contains(phrase, case=False)]
-    else:
-        view = data
-    return view
+    return data[data['summary'].str.contains(phrase, case=False)] if phrase else data
 
 
 def local_css(file_name):
@@ -77,7 +73,7 @@ st.markdown(
     Source: [link](https://www.pch24.pl/)  
     Score: **0.5**
     źródło: [link](https://www.pch24.pl/)
-    """ 
+    """
 )
 
 st.markdown(
@@ -89,7 +85,7 @@ st.markdown(
     Source: [link](https://www.pch24.pl/)  
     Score: **0.5**
     źródło: [link](https://www.pch24.pl/)
-    """ 
+    """
 )
 if button_clicked:
     view = filter_data(data, selected)

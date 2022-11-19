@@ -11,3 +11,4 @@ spacy
 pytextrank
 dash
 watchdog
+streamlit
