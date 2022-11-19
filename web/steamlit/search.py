@@ -17,7 +17,7 @@ def load_data():
 
 def filter_data(data, phrase):
     if phrase:
-        view = data[data['summary'].str.contains(phrase, case=False)]
+        view = data[data['content'].str.contains(phrase, case=False)]
     else:
         view = data
     return view
@@ -63,24 +63,46 @@ icon("search")
 st.markdown("# Search")
 data = load_data()
 st.sidebar.markdown("# Visualization")
-selected = st.text_input("", "Search...")
+selected = st.text_input("Search", placeholder="Search...")
 button_clicked = st.button("Search", )
 data_load_state = st.text('Loading data...')
 data = load_data()
 data_load_state.text("Done! (using st.cache)")
-# main_view = st.dataframe(data, use_container_width=True)
+main_view = st.dataframe(data, use_container_width=True)
+st.markdown(
 
+    f"""
+    # To jest tytuł newsa
+    To jest podsumowanie newsa 2
+
+    Source: [link](https://www.pch24.pl/)  
+    Score: **0.5**
+    źródło: [link](https://www.pch24.pl/)
+    """ 
+)
+
+st.markdown(
+
+    f"""
+    # To jest tytuł newsa
+    To jest podsumowanie newsa 
+
+    Source: [link](https://www.pch24.pl/)  
+    Score: **0.5**
+    źródło: [link](https://www.pch24.pl/)
+    """ 
+)
 if button_clicked:
     view = filter_data(data, selected)
-    with st.expander("Cards"):
-        i = MAX_ENTRIES
-        for _, row in view.iterrows():
-            add_row(row)
-            i -= 1
-            if i == 0:
-                break
-    # st.map(view)
-    # main_view.dataframe(view, use_container_width=True)
+    # with st.expander("Cards"):
+    #     i = MAX_ENTRIES
+    #     for _, row in view.iterrows():
+    #         add_row(row)
+    #         i -= 1
+    #         if i == 0:
+    #             break
+    # # st.map(view)
+    main_view.dataframe(view, use_container_width=True)
     # main_view = st.dataframe(view, width=None, height=None)
 
 local_css(STYLE_SHEET)

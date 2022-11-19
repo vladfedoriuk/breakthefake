@@ -13,7 +13,8 @@ from tqdm import tqdm
 nlp = spacy.load("pl_core_news_sm")
 nlp.add_pipe("textrank")
 MAX_PHRASES = 5
-
+MAX_LEN = 1000000 // 2
+MAX_PER_SOURCE = 1000
 ARTICLE_SRC = "data/tvp_articles/*.json"
 ARTICLE_DST = "data/database.csv"
 emoji_pattern = re.compile(
@@ -58,11 +59,15 @@ class MetadataExtractor:
         """Extract the metadata from the article."""
         article_doc = json.load(open(article_json_filename, "r"))
         article_text = self.clean_text(article_doc["content"])
+        for k in ('author', 'date'):
+            article_doc[k] = article_doc[k].strip()
         article_doc['content'] = article_text
-        doc = nlp(article_doc["content"])
+        doc = nlp(article_doc["content"][:MAX_LEN])
         article_doc['tags'] = self.tag_document(doc)
-        article_doc['summary'] = self.extract_summary(doc)
-        article_doc['categories'] = self.find_categories(article_text)
+        article_doc['summary'] = self.extract_summary(doc).replace("  ", " ")
+        cats, subjects = self.find_categories(article_text)
+        article_doc['categories'] = cats
+        article_doc['subjects'] = subjects
         return article_doc
 
     def tag_document(self, doc: spacy.tokens.Doc) -> List[str]:
@@ -70,7 +75,7 @@ class MetadataExtractor:
         tags = []
         for phrase in doc._.phrases[:self.max_phrases]:
             tags.append(phrase.text)
-        return tags
+        return ", ".join(set(tags))
 
     def extract_summary(self, doc: spacy.tokens.Doc) -> List[str]:
         """Produce a summary of the article. Extracts the most important sentences."""
@@ -102,16 +107,19 @@ class MetadataExtractor:
             idx: all_sents[idx].text
             for (idx, _) in sent_rank[:self.max_sents]
         }
-        return list(sent_text.values())
+        return " ".join(sent_text.values())
 
     def find_categories(self, article_text: str):
-        """Use regex to find the categories of the article."""
-        article_cats = []
+        """Use regex to find the subjects/categories of the article."""
+        article_cats, article_subjects = [], []
         for category, rgx in self.rgx_set.items():
-            if rgx.search(article_text):
+            search_res = rgx.search(article_text)
+            if search_res:
+                # print(search_res)
+                article_subjects.append(search_res.group(0))
                 article_cats.append(category)
 
-        return article_cats
+        return ", ".join(article_cats), ", ".join(article_subjects)
 
     def extract_categories_rgx(self):
         minsterstwo = [
@@ -138,7 +146,7 @@ class MetadataExtractor:
                 *[x + " finansów" for x in rzecznik],
                 *[x + " MF" for x in rzecznik],
             ],
-            'finanse publiczne': [
+            'Finanse publiczne': [
                 'finanse publiczne', 'budżet', 'budżetu', 'budżetem',
                 'budżetowi', 'budżetach', 'finansów publicznych',
                 'finansów publicznego', 'finansów publicznego',
@@ -147,7 +155,7 @@ class MetadataExtractor:
                 'obligacje skarbowe', 'obligacji skarbowych', 'obligacji',
                 'deficyt', 'deficytowi', 'hazard'
             ],
-            'podatki': [
+            'Podatki': [
                 'podatki',
                 'podatków',
                 'podatku',
@@ -161,12 +169,12 @@ class MetadataExtractor:
                 'cło',
                 'cłach',
             ],
-            'administracja': [
+            'Administracja': [
                 'KAS', 'administracja skarbowa', 'administracji skarbowej',
                 'skarbowy', 'celna', 'celno-skarbowa', 'celno-skarbowej'
             ],
-            'kpo': ['kpo', 'krajowy plan odbudowy'],
-            'projekty': [
+            'KPO': ['kpo', 'krajowy plan odbudowy'],
+            'Projekty': [
                 'e-pit',
                 'epit',
                 'e-podatki',
@@ -187,7 +195,7 @@ class MetadataExtractor:
                 'polska agencja nadzoru audytowego',
                 'wakacje kredytowe',
             ],
-            'instytucje': [
+            'Instytucje': [
                 'nbp', 'bank centralny', 'banku centralnego',
                 'narodowy bank polski', 'MFW',
                 'międzynarodowy fundusz walutowy',
@@ -195,8 +203,8 @@ class MetadataExtractor:
                 'komisja nadzoru finansowego', 'komisji nadzoru finansowego',
                 'KNF'
             ],
-            'oplaty': ['e-toll', 'etoll', 'viatoll', 'e-myto', 'emyto'],
-            'entities': [
+            'Opłaty': ['e-toll', 'etoll', 'viatoll', 'e-myto', 'emyto'],
+            'Przedstawiciele MF': [
                 'Rzeczkowska', 'Rzecznik Prasowy MF', 'Rzecznik Finansów',
                 'Rzecznik Finansów Publicznych', 'Chałupa', 'Patkowski',
                 'Skuza', 'Czernicki', 'Szwarc', 'Gojny', 'Soboń', 'Szweda',
@@ -218,14 +226,15 @@ if __name__ == "__main__":
     all_sources = [
         'data/tvp_articles',
         'data/wp_articles',
+        'data/pch24_articles',
+        'data/wpolityce_articles',
     ]
     all_article_paths = []
     for src in all_sources:
-        all_article_paths.extend(glob.glob(f'{src}/*.json'))
-    random.shuffle(all_article_paths)
+        all_article_paths.extend(glob.glob(f'{src}/*.json')[:MAX_PER_SOURCE])
+    # random.shuffle(all_article_paths)
     for json_path in tqdm(all_article_paths):
         new_article = extractor(json_path)
-        # print(new_article['summary'])
         articles.append(new_article)
 
     df = pd.DataFrame.from_records(articles)

@@ -10,3 +10,4 @@ nltk
 spacy
 pytextrank
 dash
+watchdog
