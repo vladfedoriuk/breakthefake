@@ -24,9 +24,9 @@ def download_all_pages():
         html = download_page(page)
         if not html:
             break
-        with open("data/pch24/aritcle_list_pch24_{}.html".format(page),
-                  "w",
-                  encoding="utf-8") as file:
+        with open(
+            "data/pch24/aritcle_list_pch24_{}.html".format(page), "w", encoding="utf-8"
+        ) as file:
             file.write(html)
         page += 1
 
@@ -34,14 +34,13 @@ def download_all_pages():
 def find_wp_author(parsed_html):
     author = parsed_html.find("a title", {"class": "title"})
     if author:
-        return author.text.replace("/author", "").replace("-",
-                                                          " ").capitalize()
+        return author.text.replace("/author", "").replace("-", " ").capitalize()
 
-    author = parsed_html.find('span', {'class': 'signature--author'})
+    author = parsed_html.find("span", {"class": "signature--author"})
     if author:
         return author.text
 
-    return ''
+    return ""
 
 
 def clean_text(text):
@@ -61,21 +60,21 @@ def download_article_text(url):
     article_text = bs4.BeautifulSoup(response.text, "html.parser")
     author = find_wp_author(article_text)
     try:
-        date = article_text.find('span', {'class': 'date'}).text
+        date = article_text.find("span", {"class": "date"}).text
     except AttributeError:
-        date = ''
+        date = ""
     content = article_text.find("article", {"class": "pch-article"})
     full_content = []
     for scontent in content.find_all("p"):
         full_content.append(scontent.text)
     target_json = {
         "author": author,
-        "claimed_source": 'pch24.pl',
+        "claimed_source": "pch24.pl",
         "date": date,
         "title": article_text.select("h1")[0].text,
         "content": clean_text(" ".join(full_content)),
         "url": url,
-        'source': 'pch24',
+        "source": "pch24",
     }
     return target_json
 
@@ -98,14 +97,17 @@ def iterate_over_pages():
                     url = url.get("href")
                     article_json = download_article_text(url)
                     with open(
-                            target_save,
-                            "w",
+                        target_save,
+                        "w",
                     ) as file:
                         json.dump(article_json, file)
 
-                except (AttributeError, requests.exceptions.ConnectionError,
-                        requests.exceptions.ReadTimeout,
-                        FileNotFoundError) as ex:
+                except (
+                    AttributeError,
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.ReadTimeout,
+                    FileNotFoundError,
+                ) as ex:
                     print("Error: {}".format(ex))
                 time.sleep(0.5)
                 indx += 1

@@ -21,13 +21,11 @@ def fetch_article_wgospodarce(link: str):
         article_soup = bs4.BeautifulSoup(article_text, "html.parser")
         title = article_soup.find("h2", class_="publication__title").get_text()
         article["title"] = title
-        date = article_soup.find(
-            "li", class_="meta__item meta__item--dates").get_text()
+        date = article_soup.find("li", class_="meta__item meta__item--dates").get_text()
         article["date"] = date
         author = article_soup.find("p", class_="author__name").get_text()
         article["author"] = author
-        content = article_soup.find("main",
-                                    class_="publication__body").get_text()
+        content = article_soup.find("main", class_="publication__body").get_text()
         article["content"] = content
     return article
 
@@ -42,11 +40,9 @@ def fetch_article_wpolityce(link: str):
         article["title"] = title
         date = article_soup.find("time", class_="js-relative-date")["title"]
         article["date"] = date
-        author = article_soup.find("h3",
-                                   class_="article__author-name").get_text()
+        author = article_soup.find("h3", class_="article__author-name").get_text()
         article["author"] = author
-        content = article_soup.find("section",
-                                    class_="article__main").get_text()
+        content = article_soup.find("section", class_="article__main").get_text()
         article["content"] = clean_text(content)
     return article
 
@@ -67,9 +63,9 @@ def scrap(src_name: str):
     links = get_article_links(src_name)
     for article_link in tqdm(links):
         save_path = f"data/wpolityce_articles/{src_name.lower()}_{indx}.json"
-        if article_link.startswith('/'):
+        if article_link.startswith("/"):
             article_link = SRC_PAGE + article_link
-        content = ''
+        content = ""
         if os.path.exists(save_path):
             indx += 1
             continue
@@ -78,17 +74,18 @@ def scrap(src_name: str):
                 content = fetch_article_wgospodarce(article_link)
             elif "wpolityce" in article_link:
                 content = fetch_article_wpolityce(article_link)
-        except (AttributeError, requests.exceptions.ConnectionError,
-                requests.exceptions.TooManyRedirects,
-                requests.exceptions.ReadTimeout, FileNotFoundError) as ex:
+        except (
+            AttributeError,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.TooManyRedirects,
+            requests.exceptions.ReadTimeout,
+            FileNotFoundError,
+        ) as ex:
             print("Error: {}".format(ex))
             indx += 1
             continue
         if content:
-            json.dump(content,
-                      open(save_path, "w"),
-                      indent=True,
-                      sort_keys=True)
+            json.dump(content, open(save_path, "w"), indent=True, sort_keys=True)
         indx += 1
 
 

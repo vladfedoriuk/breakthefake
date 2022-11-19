@@ -24,9 +24,9 @@ def download_all_pages():
         html = download_page(page)
         if not html:
             break
-        with open("data/wp/aritcle_list_wp_{}.html".format(page),
-                  "w",
-                  encoding="utf-8") as file:
+        with open(
+            "data/wp/aritcle_list_wp_{}.html".format(page), "w", encoding="utf-8"
+        ) as file:
             file.write(html)
         page += 1
 
@@ -34,14 +34,13 @@ def download_all_pages():
 def find_wp_author(parsed_html):
     author = parsed_html.find("a title", {"class": "title"})
     if author:
-        return author.text.replace("/author", "").replace("-",
-                                                          " ").capitalize()
+        return author.text.replace("/author", "").replace("-", " ").capitalize()
 
-    author = parsed_html.find('span', {'class': 'signature--author'})
+    author = parsed_html.find("span", {"class": "signature--author"})
     if author:
         return author.text
 
-    return ''
+    return ""
 
 
 def clean_text(text):
@@ -61,22 +60,22 @@ def download_article_text(url):
     article_text = bs4.BeautifulSoup(response.text, "html.parser")
     author = find_wp_author(article_text)
     try:
-        title = article_text.find('h1', {'class': 'article--title'}).text
-        date = article_text.find('span', {'class': 'data--reactid'}).text
+        title = article_text.find("h1", {"class": "article--title"}).text
+        date = article_text.find("span", {"class": "data--reactid"}).text
     except AttributeError:
-        date = ''
+        date = ""
     content = article_text.find_all("div", {"class": "article--text"})
     full_content = []
     for scontent in content:
         full_content.append(scontent.text)
     target_json = {
         "author": author,
-        "claimed_source": 'wp.pl',
+        "claimed_source": "wp.pl",
         "date": date,
         "title": article_text.select("h1")[0].text,
         "content": clean_text(" ".join(full_content)),
         "url": MAIN_PAGE + url,
-        'source': 'wp',
+        "source": "wp",
     }
     return target_json
 
@@ -98,14 +97,17 @@ def iterate_over_pages():
                     url = sarticle.get("href")
                     article_json = download_article_text(url)
                     with open(
-                            target_save,
-                            "w",
+                        target_save,
+                        "w",
                     ) as file:
                         json.dump(article_json, file)
 
-                except (AttributeError, requests.exceptions.ConnectionError,
-                        requests.exceptions.ReadTimeout,
-                        FileNotFoundError) as ex:
+                except (
+                    AttributeError,
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.ReadTimeout,
+                    FileNotFoundError,
+                ) as ex:
                     print("Error: {}".format(ex))
                 time.sleep(0.5)
                 indx += 1
