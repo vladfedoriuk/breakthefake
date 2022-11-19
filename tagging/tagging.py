@@ -52,12 +52,16 @@ class MetadataExtractor:
         text = re.sub(r'pic.twitter\S+', '', text)
         text = emoji_pattern.sub(r'', text)
         text = text.replace('..', '.')
+        text = text.replace('""', '"')
         text = text.replace('  ', ' ')
         return text
 
     def __call__(self, article_json_filename: os.PathLike) -> Dict[str, Any]:
         """Extract the metadata from the article."""
         article_doc = json.load(open(article_json_filename, "r"))
+        if 'content' not in article_doc:
+            print(article_json_filename)
+            return None
         article_text = self.clean_text(article_doc["content"])
         for k in ('author', 'date'):
             article_doc[k] = article_doc[k].strip()
@@ -235,6 +239,8 @@ if __name__ == "__main__":
     # random.shuffle(all_article_paths)
     for json_path in tqdm(all_article_paths):
         new_article = extractor(json_path)
+        if new_article is None:
+            continue
         articles.append(new_article)
 
     df = pd.DataFrame.from_records(articles)

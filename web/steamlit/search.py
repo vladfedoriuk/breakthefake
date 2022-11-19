@@ -62,7 +62,6 @@ def add_row(data_row):
 icon("search")
 st.markdown("# Search")
 data = load_data()
-st.sidebar.markdown("# Visualization")
 selected = st.text_input("Search", placeholder="Search...")
 button_clicked = st.button("Search", )
 data_load_state = st.text('Loading data...')
