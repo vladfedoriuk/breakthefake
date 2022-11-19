@@ -31,9 +31,9 @@ def icon(icon_name):
 
 
 def add_row(data_row):
+    st.markdown("<hr/>", unsafe_allow_html=True)
     st.markdown(f'### {data_row["title"]}')
     author, source, date, url = st.columns(4)
-    st.markdown("<hr/>", unsafe_allow_html=True)
     st.markdown(
         f"""
           <h6 class="italic-text">{data_row["author"] or _EMPTY} </h6>
@@ -46,7 +46,7 @@ def add_row(data_row):
         """,
         unsafe_allow_html=True,
     )
-    st.markdown(f'**Source**: [{data_row["source"]}]({data_row["url"]})')
+    st.markdown(f'**Źródło**: [{data_row["source"]}]({data_row["url"]})')
     st.markdown("")
     st.markdown(f'{data_row["summary"]}')
 
