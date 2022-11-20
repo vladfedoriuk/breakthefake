@@ -15,6 +15,8 @@ categories = [
     "Przedstawiciele MF",
 ]
 
+sources = {"demagog", "pch24", "tvp", "wpolityce", "wgospodarce", "wp"}
+
 topics = pd.read_excel("data/categories.XLSX")["Unnamed: 2"].values[1:]
 
 STYLE_SHEET = os.path.join(os.path.dirname(__file__), "style.css")
@@ -67,6 +69,27 @@ def filter_data(data, query: dict):
             if query["probability_fake"]
             else var
         )
+    if "source" in query:
+        var = var[
+            (
+                reduce(
+                    lambda a, b: a | b,
+                    [
+                        var["source"].str.contains(source_, case=False)
+                        for source_ in query["source"]
+                    ],
+                )
+            )
+            | (
+                reduce(
+                    lambda a, b: a | b,
+                    [
+                        var["url"].str.contains(source_, case=False)
+                        for source_ in query["source"]
+                    ],
+                )
+            )
+        ]
     return var
 
 
@@ -110,7 +133,7 @@ def add_row(data_row):
     st.markdown(f'**Źródło**: [{data_row["source"]}]({data_row["url"]})')
     claimed_source = data_row["claimed_source"]
     if isinstance(claimed_source, str):
-        claimed_source =claimed_source.split(":")
+        claimed_source = claimed_source.split(":")
         claimed_source = claimed_source[-1]
     else:
         claimed_source = _EMPTY
@@ -167,7 +190,9 @@ def add_row(data_row):
     with probability_fake_column:
         st.metric(
             "Pewność fake'a",
-            value=f'{probability_fake_value:.3g}%' if probability_fake_value is not None else _EMPTY
+            value=f"{probability_fake_value:.3g}%"
+            if probability_fake_value is not None
+            else _EMPTY,
         )
 
 
@@ -191,6 +216,12 @@ with st.form(key="form"):
         key="temat",
         help="Wybierz tematy",
     )
+    source = st.multiselect(
+        "Źródło",
+        options=sources,
+        key="source",
+        help="Wybierz źródło",
+    )
     probability_fake = st.slider(
         "Prawdopodobieństwo fake'a",
         min_value=0.0,
@@ -206,7 +237,15 @@ data_load_state = st.text("Loading data...")
 data_load_state.text("Done!")
 
 if submitted:
-    view = filter_data(data, {"search": search, "category": category, "probability_fake": probability_fake})
+    view = filter_data(
+        data,
+        {
+            "search": search,
+            "category": category,
+            "probability_fake": probability_fake,
+            "source": source,
+        },
+    )
     if not len(view):
         st.warning("Nie znaleziono artykułów.")
         st.stop()
