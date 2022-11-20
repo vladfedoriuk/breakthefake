@@ -23,7 +23,7 @@ docker run -p 80:80 breakthefake
 # TODO:
 
 - [x] Docker 
-- [ ] Wizualizacja danych (Bar chart do tagów) (stacked bar chart do tagów i kategorii w zalenośi od źródła)
+- [ ] Wizualizacja danych (Bar chart do tagów) (stacked bar chart do tagów i kategorii w zalenośi od źródła) - IN PROGRESS - Piotr
 - [ ] % fake news per źródło 
 - [ ] Regex na znane wyraenia indykujące fake news 
 - [ ] Korleacje między newsami 
@@ -33,3 +33,5 @@ docker run -p 80:80 breakthefake
 
 - [ ] Kto odpowiada za najwiecej fake news -- z demagoga? Top kłamczuszków xd
 - [ ] Najbardziej wydatne słowa przy fake news.
+- paginacja ??
+- hate speach classification - IN PROGRESS - VLAD
