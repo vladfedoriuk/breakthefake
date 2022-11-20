@@ -1,4 +1,3 @@
-from functools import partial
 import streamlit as st
 import pandas as pd
 import os
@@ -10,7 +9,8 @@ _EMPTY = "(brak)"
 
 @st.cache
 def load_data():
-    return pd.read_csv("./data/database.csv")
+    data = pd.read_csv("./data/database.csv", lineterminator="\n")
+    return data
 
 
 def filter_data(data, phrase):
@@ -50,10 +50,23 @@ def add_row(data_row):
     st.markdown("")
     st.markdown(f'{data_row["summary"]}')
 
+    st.markdown(f"##### Tags")
+    tags = [x_.strip() for x_ in data_row["tags"].split(", ")]
+
+    st.markdown(
+        f'''
+        {''.join(
+            f'<span class="tag tag-green">{tag.strip()}</span>'
+            for tag in tags
+        )
+        }
+        ''',
+        unsafe_allow_html=True
+    )
+
 
 icon("search")
 st.markdown("# Search")
-data = load_data()
 selected = st.text_input("Search", placeholder="Search...")
 button_clicked = st.button(
     "Search",

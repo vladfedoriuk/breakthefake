@@ -1,5 +1,4 @@
 import spacy
-import pytextrank
 import json
 import glob
 from typing import List, Dict, Any
@@ -7,7 +6,6 @@ import math
 import os
 import re
 import pandas as pd
-import random
 from tqdm import tqdm
 
 nlp = spacy.load("pl_core_news_sm")
@@ -50,19 +48,20 @@ class MetadataExtractor:
             *to_remove,
         )  # watch out for the - it's U+2013
         for char in forbidden_chars:
-            text = text.replace(char, '')
-        text = re.sub(r'http\S+', '', text)
-        text = re.sub(r'pic.twitter\S+', '', text)
-        text = emoji_pattern.sub(r'', text)
-        text = text.replace('..', '.')
+            text = text.replace(char, "")
+        text = re.sub(r"http\S+", "", text)
+        text = re.sub(r"pic.twitter\S+", "", text)
+        text = emoji_pattern.sub(r"", text)
+        text = text.replace("..", ".")
         text = text.replace('""', '"')
-        text = text.replace('  ', ' ')
+        text = text.replace("  ", " ")
+        text = re.sub(r'\s+', ' ', text)
         return text
 
     def __call__(self, article_json_filename: os.PathLike) -> Dict[str, Any]:
         """Extract the metadata from the article."""
         article_doc = json.load(open(article_json_filename, "r"))
-        if 'content' not in article_doc:
+        if "content" not in article_doc:
             print(article_json_filename)
             return None
         article_text = self.clean_text(article_doc["content"])
