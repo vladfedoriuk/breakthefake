@@ -1,6 +1,22 @@
+from functools import reduce
+
 import streamlit as st
 import pandas as pd
 import os
+
+categories = [
+    "Ministerstwo Finansów",
+    "Finanse publiczne",
+    "Podatki",
+    "Administracja",
+    "KPO",
+    "Projekty",
+    "Instytucje",
+    "Opłaty",
+    "Przedstawiciele MF",
+]
+
+topics = pd.read_excel("data/categories.XLSX")["Unnamed: 2"].values[1:]
 
 STYLE_SHEET = os.path.join(os.path.dirname(__file__), "style.css")
 MAX_ENTRIES = 10
@@ -16,9 +32,37 @@ def load_data():
     return data
 
 
-def filter_data(data, phrase):
-    return data[data["summary"].str.contains(phrase,
-                                             case=False)] if phrase else data
+def filter_data(data, query: dict):
+    var = data
+    if "search" in query:
+        var = (
+            data[
+                reduce(
+                    lambda a, b: a & b,
+                    [
+                        data["summary"].str.contains(word, case=False)
+                        for word in query["search"].split(" ")
+                    ],
+                )
+            ]
+            if query["category"]
+            else data
+        )
+    if "category" in query:
+        var = (
+            data[
+                reduce(
+                    lambda a, b: a | b,
+                    [
+                        data["categories"].str.contains(category_, case=False)
+                        for category_ in query["category"]
+                    ],
+                )
+            ]
+            if query["category"]
+            else data
+        )
+    return var
 
 
 def local_css(file_name):
@@ -27,13 +71,11 @@ def local_css(file_name):
 
 
 def remote_css(url):
-    st.markdown(f'<link href="{url}" rel="stylesheet">',
-                unsafe_allow_html=True)
+    st.markdown(f'<link href="{url}" rel="stylesheet">', unsafe_allow_html=True)
 
 
 def icon(icon_name):
-    st.markdown(f'<i class="material-icons">{icon_name}</i>',
-                unsafe_allow_html=True)
+    st.markdown(f'<i class="material-icons">{icon_name}</i>', unsafe_allow_html=True)
 
 
 def add_row(data_row):
@@ -61,57 +103,88 @@ def add_row(data_row):
     claimed_source = data_row["claimed_source"].split(":")
     claimed_source = claimed_source[-1]
 
-    st.markdown(f'**Podane Źródło**: {claimed_source}')
+    st.markdown(f"**Podane Źródło**: {claimed_source}")
     st.markdown("")
     st.markdown(f'{data_row["summary"]}')
 
     st.markdown(f"##### Tagi")
     tags = [x_.strip() for x_ in data_row["tags"].split(", ")]
 
-    st.markdown(f'''
+    st.markdown(
+        f"""
         {''.join(
             f'<span class="tag tag-green">{tag.strip()}</span>'
             for tag in tags
         )
         }
-        ''',
-                unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True,
+    )
 
     st.markdown(f"##### Kategorie")
     categories = [x_.strip() for x_ in data_row["categories"].split(", ")]
 
-    st.markdown(f'''
+    st.markdown(
+        f"""
             {''.join(
             f'<span class="tag tag-purple">{category.strip()}</span>'
             for category in categories
         )
         }
-            ''',
-                unsafe_allow_html=True)
+            """,
+        unsafe_allow_html=True,
+    )
 
     st.markdown(f"##### Tematy")
     categories = [x_.strip() for x_ in data_row["subjects"].split(", ")]
 
-    st.markdown(f'''
+    st.markdown(
+        f"""
                 {''.join(
             f'<span class="tag tag-purple">{category.strip()}</span>'
             for category in categories
         )
         }
-                ''',
-                unsafe_allow_html=True)
+                """,
+        unsafe_allow_html=True,
+    )
 
+
+data = load_data()
 
 icon("search")
-st.markdown("# Search")
-selected = st.text_input("Search", placeholder="Search...")
-button_clicked = st.button("Search", )
+st.markdown("### Wyszukaj")
+with st.form(key="form"):
+    search = st.text_input("Search", placeholder="Search...")
+
+    category = st.multiselect(
+        "Kategorie",
+        options=categories,
+        key="category",
+        help="Wybierz kategorie, do których powinien należeć artykuł",
+    )
+    topic = st.multiselect(
+        "Temat",
+        options=topics,
+        key="temat",
+        help="Wybierz tematy",
+    )
+    st.slider(
+        "Prawdopodobieństwo fake'a",
+        min_value=0.0,
+        max_value=1.0,
+        value=0.7,
+        step=0.01,
+        key="prob",
+        help="Pewność algorytmu, że news jest fakiem.",
+    )
+    submitted = st.form_submit_button(label="Search")
+
 data_load_state = st.text("Loading data...")
-data = load_data()
 data_load_state.text("Done!")
 
-if button_clicked:
-    view = filter_data(data, selected)
+if submitted:
+    view = filter_data(data, {"search": search, "category": category})
     with st.container():
         st.markdown(f"## Top {MAX_ENTRIES} artykułów")
         for _, row in list(view.iterrows())[MAX_ENTRIES:0:-1]:

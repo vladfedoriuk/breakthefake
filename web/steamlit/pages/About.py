@@ -1,7 +1,8 @@
 import streamlit as st
 
 st.header("About")
-st.markdown("""
+st.markdown(
+    """
     # Break the fake news cycle
 
     ## What is this?
@@ -24,4 +25,5 @@ st.markdown("""
 
     ## Authors
     - FullStek
-    """)
+    """
+)
