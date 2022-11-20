@@ -84,7 +84,7 @@ def get_fake_valid_plot(db_view):
         uniformtext=dict(mode="hide", minsize=10),
     )
     fig.update_xaxes(tickangle=30)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=False)
 
 
 def get_category_counts(db_view):
@@ -98,7 +98,7 @@ def get_category_counts(db_view):
         title="Frequencies of category appearing among sources",
     )
     fig.update_layout(xaxis={'title': 'source'})
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=False)
 
 
 get_fake_valid_plot(load_data())
