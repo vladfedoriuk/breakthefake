@@ -11,6 +11,7 @@ _EMPTY = "(brak)"
 def load_data():
     data = pd.read_csv("./data/database.csv", lineterminator="\n")
     data = data[~data["categories"].isnull()]
+    data = data[~data["subjects"].isnull()]
     return data
 
 
@@ -79,6 +80,20 @@ def add_row(data_row):
         unsafe_allow_html=True
     )
 
+    st.markdown(f"##### Tematy")
+    categories = [x_.strip() for x_ in data_row["subjects"].split(", ")]
+
+    st.markdown(
+        f'''
+                {''.join(
+            f'<span class="tag tag-purple">{category.strip()}</span>'
+            for category in categories
+        )
+        }
+                ''',
+        unsafe_allow_html=True
+    )
+
 
 icon("search")
 st.markdown("# Search")
@@ -95,8 +110,8 @@ main_view = st.dataframe(data, use_container_width=True)
 if button_clicked:
     view = filter_data(data, selected)
     with st.container():
-        st.markdown("## Top 10 artykułów")
-        for _, row in list(view.iterrows())[9:0:-1]:
+        st.markdown(f"## Top {MAX_ENTRIES} artykułów")
+        for _, row in list(view.iterrows())[MAX_ENTRIES:0:-1]:
             add_row(row)
 
 

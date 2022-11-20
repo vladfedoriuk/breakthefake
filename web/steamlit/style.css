@@ -61,3 +61,8 @@ h1.tag {
     background: var(--purple);
     color: #fff
 }
+
+.tag-orange {
+    background: var(--orange);
+    color: #fff
+}
