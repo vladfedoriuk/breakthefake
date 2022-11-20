@@ -22,7 +22,7 @@ docker run -p 80:80 breakthefake
 
 # TODO:
 
-- [ ] Docker 
+- [x] Docker 
 - [ ] Wizualizacja danych (Bar chart do tagów) (stacked bar chart do tagów i kategorii w zalenośi od źródła)
 - [ ] % fake news per źródło 
 - [ ] Regex na znane wyraenia indykujące fake news 
