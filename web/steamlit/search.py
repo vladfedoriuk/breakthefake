@@ -1,4 +1,3 @@
-from functools import partial
 import streamlit as st
 import pandas as pd
 import os
@@ -10,7 +9,9 @@ _EMPTY = "(brak)"
 
 @st.cache
 def load_data():
-    return pd.read_csv("./data/database.csv")
+    data = pd.read_csv("./data/database.csv")
+    import pdb; pdb.set_trace()
+    return data
 
 
 def filter_data(data, phrase):
@@ -49,6 +50,20 @@ def add_row(data_row):
     st.markdown(f'**Źródło**: [{data_row["source"]}]({data_row["url"]})')
     st.markdown("")
     st.markdown(f'{data_row["summary"]}')
+
+    st.markdown(f"##### Tags")
+    st.markdown(
+        f'''
+        <ul class="tags">
+        {''.join(
+            f'<li class="tag">{tag}</li>'
+            for tag in data_row['tags']
+        )
+        }
+        </ul>
+        ''',
+        unsafe_allow_html=True
+    )
 
 
 icon("search")
