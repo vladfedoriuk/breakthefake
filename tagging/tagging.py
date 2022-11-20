@@ -12,6 +12,8 @@ from tqdm import tqdm
 
 nlp = spacy.load("pl_core_news_sm")
 nlp.add_pipe("textrank")
+
+model = spacy.load('pl', disable=['parser', 'ner'])
 MAX_PHRASES = 5
 MAX_LEN = 1000000 // 2
 MAX_PER_SOURCE = 2000
@@ -32,6 +34,7 @@ to_remove = [
 
 
 class MetadataExtractor:
+
     def __init__(self, max_phrases: int = 5, max_sents: int = 3) -> None:
         self.max_phrases = max_phrases
         self.max_sents = max_sents
@@ -77,7 +80,7 @@ class MetadataExtractor:
     def tag_document(self, doc: spacy.tokens.Doc) -> List[str]:
         """Extract the most important phrases from the article."""
         tags = []
-        for phrase in doc._.phrases[: self.max_phrases]:
+        for phrase in doc._.phrases[:self.max_phrases]:
             tags.append(phrase.text)
         return ", ".join(set(tags))
 
@@ -101,14 +104,15 @@ class MetadataExtractor:
             sum_sq = 0.0
             for phrase_id in range(len(unit_vector)):
                 if phrase_id not in sent_vector:
-                    sum_sq += unit_vector[phrase_id] ** 2.0
+                    sum_sq += unit_vector[phrase_id]**2.0
 
             sent_rank[sent_id] = math.sqrt(sum_sq)
             sent_id += 1
         sent_rank = sorted(sent_rank.items(), key=lambda x: x[1], reverse=True)
         all_sents = list(doc.sents)
         sent_text = {
-            idx: all_sents[idx].text for (idx, _) in sent_rank[: self.max_sents]
+            idx: all_sents[idx].text
+            for (idx, _) in sent_rank[:self.max_sents]
         }
         return " ".join(sent_text.values())
 
