@@ -9,12 +9,14 @@ _EMPTY = "(brak)"
 
 @st.cache
 def load_data():
-    data = pd.read_csv("./data/database.csv", lineterminator="\n")
+    data = pd.read_csv("./data/database_no_content.csv", lineterminator="\n")
+    data = data.dropna(subset=["summary"])
     return data
 
 
 def filter_data(data, phrase):
-    return data[data["summary"].str.contains(phrase, case=False)] if phrase else data
+    return data[data["summary"].str.contains(phrase,
+                                             case=False)] if phrase else data
 
 
 def local_css(file_name):
@@ -23,11 +25,13 @@ def local_css(file_name):
 
 
 def remote_css(url):
-    st.markdown(f'<link href="{url}" rel="stylesheet">', unsafe_allow_html=True)
+    st.markdown(f'<link href="{url}" rel="stylesheet">',
+                unsafe_allow_html=True)
 
 
 def icon(icon_name):
-    st.markdown(f'<i class="material-icons">{icon_name}</i>', unsafe_allow_html=True)
+    st.markdown(f'<i class="material-icons">{icon_name}</i>',
+                unsafe_allow_html=True)
 
 
 def add_row(data_row):
@@ -40,9 +44,12 @@ def add_row(data_row):
           """,
         unsafe_allow_html=True,
     )
+    date_ = str(data_row["date"])
+    if date_ == "nan":
+        date_ = _EMPTY
     st.markdown(
         f"""
-        <h6 class="italic-text">{data_row["date"] or _EMPTY} </h6>
+        <h6 class="italic-text">{date_ or _EMPTY} </h6>
         """,
         unsafe_allow_html=True,
     )
@@ -53,29 +60,23 @@ def add_row(data_row):
     st.markdown(f"##### Tags")
     tags = [x_.strip() for x_ in data_row["tags"].split(", ")]
 
-    st.markdown(
-        f'''
+    st.markdown(f'''
         {''.join(
             f'<span class="tag tag-green">{tag.strip()}</span>'
             for tag in tags
         )
         }
         ''',
-        unsafe_allow_html=True
-    )
+                unsafe_allow_html=True)
 
 
 icon("search")
 st.markdown("# Search")
 selected = st.text_input("Search", placeholder="Search...")
-button_clicked = st.button(
-    "Search",
-)
+button_clicked = st.button("Search", )
 data_load_state = st.text("Loading data...")
 data = load_data()
-print(data.columns)
-data_load_state.text("Done! (using st.cache)")
-main_view = st.dataframe(data, use_container_width=True)
+data_load_state.text("Done!")
 
 if button_clicked:
     view = filter_data(data, selected)
@@ -83,7 +84,6 @@ if button_clicked:
         st.markdown("## Top 10 artykułów")
         for _, row in list(view.iterrows())[9:0:-1]:
             add_row(row)
-
 
 local_css(STYLE_SHEET)
 remote_css("https://fonts.googleapis.com/icon?family=Material+Icons")

@@ -1,5 +1,6 @@
 import spacy
 import json
+import pytextrank
 import glob
 from typing import List, Dict, Any
 import math
@@ -11,12 +12,12 @@ from tqdm import tqdm
 nlp = spacy.load("pl_core_news_sm")
 nlp.add_pipe("textrank")
 
-model = spacy.load('pl', disable=['parser', 'ner'])
+model = spacy.load('pl_core_news_sm', disable=['parser', 'ner'])
 MAX_PHRASES = 5
 MAX_LEN = 1000000 // 2
 MAX_PER_SOURCE = 2000
 ARTICLE_SRC = "data/tvp_articles/*.json"
-ARTICLE_DST = "data/database.csv"
+ARTICLE_DST = "data/database_no_content.csv"
 emoji_pattern = re.compile(
     "["
     "\U0001F600-\U0001F64F"  # emoticons
@@ -67,20 +68,23 @@ class MetadataExtractor:
         article_text = self.clean_text(article_doc["content"])
         for k in ("author", "date"):
             article_doc[k] = article_doc[k].strip()
-        article_doc["content"] = article_text
+        # article_doc["content"] = article_text
         doc = nlp(article_doc["content"][:MAX_LEN])
         article_doc["tags"] = self.tag_document(doc)
         article_doc["summary"] = self.extract_summary(doc).replace("  ", " ")
         cats, subjects = self.find_categories(article_text)
         article_doc["categories"] = cats
         article_doc["subjects"] = subjects
+        del article_doc["content"]
         return article_doc
 
     def tag_document(self, doc: spacy.tokens.Doc) -> List[str]:
         """Extract the most important phrases from the article."""
         tags = []
         for phrase in doc._.phrases[:self.max_phrases]:
-            tags.append(phrase.text)
+            # tags.append(phrase.text)
+            x = model(phrase.text.lower())
+            tags.append(" ".join([tok.lemma_.lower() for tok in x]))
         return ", ".join(set(tags))
 
     def extract_summary(self, doc: spacy.tokens.Doc) -> List[str]:
