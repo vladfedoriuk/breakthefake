@@ -95,3 +95,5 @@ We used a multitude of technologies to create the project. The list includes:
   - used `pl_core_news_sm` model for speed
 - Plotly
   - Data visualization
+- Beautiful Soup
+  - Web scrapping (+requests)
