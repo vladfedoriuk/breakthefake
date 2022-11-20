@@ -32,7 +32,7 @@ sources = {"demagog", "pch24", "tvp", "wpolityce", "wgospodarce", "wp"}
 topics = pd.read_excel("data/categories.XLSX")["Unnamed: 2"].values[1:]
 
 STYLE_SHEET = os.path.join(os.path.dirname(__file__), "style.css")
-MAX_ENTRIES = 10
+MAX_ENTRIES = 20
 _EMPTY = "(brak)"
 
 
