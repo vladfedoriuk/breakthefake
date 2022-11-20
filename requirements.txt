@@ -13,3 +13,4 @@ dash
 watchdog
 streamlit
 markdown
+openpyxl
