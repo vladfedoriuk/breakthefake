@@ -15,15 +15,27 @@ categories = [
     "Przedstawiciele MF",
 ]
 
-hate_speach_map = {
+hate_emoji_map = {
     "HATE": ":exclamation:",
     "NON_HATE": ":sparkles:",
     "UNKNOWN": ":question:",
 }
 
+sentiment_emoji_map = {
+    "positive": ":slightly_smiling_face:",
+    "neutral": ":face_with_rolling_eyes:",
+    "negative": ":slightly_frowning_face:"
+}
+
+sentiment_options_to_labels = {
+    "pozytywny": "positive",
+    "negatywny": "negative",
+    "neutralny": "neutral",
+}
+
 hate_speach_options_to_labels = {
-    "obecna": "HATE",
     "nieobecna": "NON_HATE",
+    "obecna": "HATE",
     "niewiadomo": "UNKNOWN",
 }
 
@@ -117,6 +129,8 @@ def filter_data(data, query: dict):
         ]
     if "hate_speach" in query and query["hate_speach"]:
         var = var[var["hate_speach"] == hate_speach_options_to_labels[query["hate_speach"]]]
+    if "sentiment" in query and query["sentiment"]:
+        var = var[var["sentiment"] == sentiment_options_to_labels[query["sentiment"]]]
 
     return var
 
@@ -211,7 +225,7 @@ def add_row(data_row):
                 """,
         unsafe_allow_html=True,
     )
-    probability_fake_column, hate_speach_column = st.columns(2)
+    probability_fake_column, hate_speach_column, sentiment_column = st.columns(3)
     probability_fake_value = data_row.get("probability_fake")
     if probability_fake_value is not None:
         probability_fake_value *= 100
@@ -224,7 +238,10 @@ def add_row(data_row):
         )
     with hate_speach_column:
         st.markdown(
-            f'##### Obecność hate speach: {hate_speach_map[data_row["hate_speach"]]}'
+            f'##### Obecność hate speach: {hate_emoji_map[data_row["hate_speach"]]}'
+        )
+        st.markdown(
+            f'##### Sentyment: {sentiment_emoji_map[data_row["sentiment"]]}'
         )
 
 
@@ -260,6 +277,12 @@ with st.form(key="form"):
         options=hate_speach_options_to_labels.keys(),
         key="hate_speach",
         help="Status hate speach w artykułu."
+    )
+    sentiment = st.selectbox(
+        "Sentyment",
+        options=sentiment_options_to_labels.keys(),
+        key="sentiment",
+        help="Sentyment artykułu."
     )
     probability_fake = st.slider(
         "Prawdopodobieństwo fake'a",
