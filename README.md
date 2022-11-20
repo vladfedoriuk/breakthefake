@@ -1,5 +1,6 @@
 # breakthefake
 
+General description of the project is in the [PROJECT_DESC.md](PROJECT_DESC.md) file.
 
 ## Models
 You need to download Polish language model from spacy: 
@@ -55,4 +56,4 @@ docker run -p 80:80 lemurpwned/hack-news:$VERSION
 
 - [x] Kto odpowiada za najwiecej fake news -- z demagoga? Top kłamczuszków xd
 - [ ] Najbardziej wydatne słowa przy fake news.
-- [ ] hate speach classification - IN PROGRESS - VLAD
+- [ ] hate speech classification - IN PROGRESS - VLAD

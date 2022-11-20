@@ -16,9 +16,9 @@ categories = [
 ]
 
 hate_emoji_map = {
-    "HATE": ":exclamation:",
-    "NON_HATE": ":sparkles:",
-    "UNKNOWN": ":question:",
+    "HATE": ":exclamation: (HATE)",
+    "NON_HATE": ":sparkles: (NON_HATE)",
+    "UNKNOWN": ":question: (UNKNOWN)",
 }
 
 sentiment_emoji_map = {
@@ -238,7 +238,7 @@ def add_row(data_row):
         )
     with hate_speach_column:
         st.markdown(
-            f'##### Obecność hate speach: {hate_emoji_map[data_row["hate_speach"]]}'
+            f'##### Obecność hate speech: {hate_emoji_map[data_row["hate_speach"]]}'
         )
         st.markdown(
             f'##### Sentyment: {sentiment_emoji_map[data_row["sentiment"]]}'
