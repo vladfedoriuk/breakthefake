@@ -2,7 +2,11 @@
 <img style="float: right top; max-width: 250px;" src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Logo_Ministerstwa_Finansów.svg">
 
 --- 
+# Key features:
 
+ - [x] scalable (Docker + Digital Ocean)
+ - [x] low-cost inference (lightweight models for fake news)
+ - [x] multi-source scrapping
 # Overview
 This is a web app that allows you to search for news articles and see how
 they are related to each other. It uses a machine learning model to clasisfy fake news,
@@ -20,7 +24,7 @@ The program is a web app consisting of two pages:
 - The statistical visualization dashboard page
 - About the project page
 
-### Quick Guide? :rocket
+### Quick Guide? :rocket:
 See `Readme.md` for more details.
 You can search for articles by entering a keyword in the search bar. The results will be
 displayed in a table. You can click on the link of the article to see the full article.
