@@ -14,7 +14,7 @@ nlp = spacy.load("pl_core_news_sm")
 nlp.add_pipe("textrank")
 MAX_PHRASES = 5
 MAX_LEN = 1000000 // 2
-MAX_PER_SOURCE = 1000
+MAX_PER_SOURCE = 2000
 ARTICLE_SRC = "data/tvp_articles/*.json"
 ARTICLE_DST = "data/database.csv"
 emoji_pattern = re.compile(
