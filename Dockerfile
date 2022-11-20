@@ -19,5 +19,6 @@ COPY data/topics.pkl /app/data/topics.pkl
 COPY data/categories.XLSX /app/data/categories.XLSX
 COPY scrapping/demagog/dataset.csv /app/scrapping/demagog/dataset.csv
 
+COPY PROJECT_DESC.md /app/PROJECT_DESC.md
 
 CMD ["streamlit", "run", "/app/web/steamlit/Search.py"]

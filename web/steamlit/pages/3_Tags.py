@@ -19,7 +19,7 @@ st.markdown("""
     """)
 
 DATASET_PATH = './scrapping/demagog/dataset.csv'
-DATABASE_PATH = './data/database.csv'
+DATABASE_PATH = './data/database_no_content.csv'
 
 
 @st.cache
