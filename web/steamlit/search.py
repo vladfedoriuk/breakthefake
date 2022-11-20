@@ -41,7 +41,7 @@ def filter_data(data, query: dict):
                 reduce(
                     lambda a, b: a & b,
                     [
-                        var["summary"].str.contains(word, case=False)
+                        var["summary"].str.contains(word, case=False, na=False)
                         for word in query["search"].split(" ")
                     ],
                 )
@@ -55,7 +55,7 @@ def filter_data(data, query: dict):
                 reduce(
                     lambda a, b: a | b,
                     [
-                        var["categories"].str.contains(category_, case=False)
+                        var["categories"].str.contains(category_, case=False, na=False)
                         for category_ in query["category"]
                     ],
                 )
@@ -69,13 +69,13 @@ def filter_data(data, query: dict):
             if query["probability_fake"]
             else var
         )
-    if "source" in query:
+    if "source" in query and query["source"]:
         var = var[
             (
                 reduce(
                     lambda a, b: a | b,
                     [
-                        var["source"].str.contains(source_, case=False)
+                        var["source"].str.contains(source_, case=False, na=False)
                         for source_ in query["source"]
                     ],
                 )
@@ -84,8 +84,21 @@ def filter_data(data, query: dict):
                 reduce(
                     lambda a, b: a | b,
                     [
-                        var["url"].str.contains(source_, case=False)
+                        var["url"].str.contains(source_, case=False, na=False)
                         for source_ in query["source"]
+                    ],
+                )
+            )
+        ]
+    if "date" in query and query["date"]:
+        date_query = str(query["date"]).split(" ")
+        var = var[
+            (
+                reduce(
+                    lambda a, b: a & b,
+                    [
+                        var["date"].str.contains(date_, case=False, na=False)
+                        for date_ in date_query
                     ],
                 )
             )
@@ -203,6 +216,7 @@ icon("search")
 st.markdown("### Wyszukaj")
 with st.form(key="form"):
     search = st.text_input("Search", placeholder="Search...")
+    date = st.text_input("Data", placeholder="20 listopada 2022.")
 
     category = st.multiselect(
         "Kategorie",
@@ -244,6 +258,7 @@ if submitted:
             "category": category,
             "probability_fake": probability_fake,
             "source": source,
+            "date": date,
         },
     )
     if not len(view):
