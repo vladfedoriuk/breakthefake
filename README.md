@@ -11,6 +11,12 @@ python3 -m spacy download pl_core_news_sm
 The trained models are in the `models` folder.
 The training script can be found in `notebooks/train_fake.ipynb` folder.
 
+### Dataset statement
+The model has been trained on the scrapped dataset from `demagog.org.pl` website.  
+The scrapping script can be found in `scrapper/demagog_scrapper.py` folder.  
+We do not provide the full scrapped datasets (.html files) due to its size.  
+We only distill into .csv files the data that we used for training the model.
+
 ### Model performance
 - accuracy on the test set: 0.76
 - recall on the test set: 0.52
