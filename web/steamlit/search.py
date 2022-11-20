@@ -15,6 +15,12 @@ categories = [
     "Przedstawiciele MF",
 ]
 
+hate_speach_map = {
+    "HATE": ":exclamation:",
+    "NON_HATE": ":sparkles:",
+    "UNKNOWN": ":question:",
+}
+
 sources = {"demagog", "pch24", "tvp", "wpolityce", "wgospodarce", "wp"}
 
 topics = pd.read_excel("data/categories.XLSX")["Unnamed: 2"].values[1:]
@@ -26,7 +32,7 @@ _EMPTY = "(brak)"
 
 @st.cache
 def load_data():
-    data = pd.read_csv("./data/database_with_proba.csv", lineterminator="\n")
+    data = pd.read_csv("data/database_no_content.csv", lineterminator="\n")
     data = data.dropna(subset=["summary"])
     data = data[~data["categories"].isnull()]
     data = data[~data["subjects"].isnull()]
@@ -196,7 +202,7 @@ def add_row(data_row):
                 """,
         unsafe_allow_html=True,
     )
-    probability_fake_column, _ = st.columns(2)
+    probability_fake_column, hate_speach_column = st.columns(2)
     probability_fake_value = data_row.get("probability_fake")
     if probability_fake_value is not None:
         probability_fake_value *= 100
@@ -206,6 +212,10 @@ def add_row(data_row):
             value=f"{probability_fake_value:.3g}%"
             if probability_fake_value is not None
             else _EMPTY,
+        )
+    with hate_speach_column:
+        st.markdown(
+            f'##### Obecność hate speach: {hate_speach_map[data_row["hate_speach"]]}'
         )
 
 
