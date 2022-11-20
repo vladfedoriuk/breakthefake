@@ -15,6 +15,20 @@ categories = [
     "Przedstawiciele MF",
 ]
 
+hate_speach_map = {
+    "HATE": ":exclamation:",
+    "NON_HATE": ":sparkles:",
+    "UNKNOWN": ":question:",
+}
+
+hate_speach_options_to_labels = {
+    "obecna": "HATE",
+    "nieobecna": "NON_HATE",
+    "niewiadomo": "UNKNOWN",
+}
+
+sources = {"demagog", "pch24", "tvp", "wpolityce", "wgospodarce", "wp"}
+
 topics = pd.read_excel("data/categories.XLSX")["Unnamed: 2"].values[1:]
 
 STYLE_SHEET = os.path.join(os.path.dirname(__file__), "style.css")
@@ -24,7 +38,7 @@ _EMPTY = "(brak)"
 
 @st.cache
 def load_data():
-    data = pd.read_csv("./data/database_with_proba.csv", lineterminator="\n")
+    data = pd.read_csv("data/database_no_content.csv", lineterminator="\n")
     data = data.dropna(subset=["summary"])
     data = data[~data["categories"].isnull()]
     data = data[~data["subjects"].isnull()]
@@ -39,7 +53,7 @@ def filter_data(data, query: dict):
                 reduce(
                     lambda a, b: a & b,
                     [
-                        var["summary"].str.contains(word, case=False)
+                        var["summary"].str.contains(word, case=False, na=False)
                         for word in query["search"].split(" ")
                     ],
                 )
@@ -53,7 +67,7 @@ def filter_data(data, query: dict):
                 reduce(
                     lambda a, b: a | b,
                     [
-                        var["categories"].str.contains(category_, case=False)
+                        var["categories"].str.contains(category_, case=False, na=False)
                         for category_ in query["category"]
                     ],
                 )
@@ -67,6 +81,43 @@ def filter_data(data, query: dict):
             if query["probability_fake"]
             else var
         )
+    if "source" in query and query["source"]:
+        var = var[
+            (
+                reduce(
+                    lambda a, b: a | b,
+                    [
+                        var["source"].str.contains(source_, case=False, na=False)
+                        for source_ in query["source"]
+                    ],
+                )
+            )
+            | (
+                reduce(
+                    lambda a, b: a | b,
+                    [
+                        var["url"].str.contains(source_, case=False, na=False)
+                        for source_ in query["source"]
+                    ],
+                )
+            )
+        ]
+    if "date" in query and query["date"]:
+        date_query = str(query["date"]).split(" ")
+        var = var[
+            (
+                reduce(
+                    lambda a, b: a & b,
+                    [
+                        var["date"].str.contains(date_, case=False, na=False)
+                        for date_ in date_query
+                    ],
+                )
+            )
+        ]
+    if "hate_speach" in query and query["hate_speach"]:
+        var = var[var["hate_speach"] == hate_speach_options_to_labels[query["hate_speach"]]]
+
     return var
 
 
@@ -110,7 +161,7 @@ def add_row(data_row):
     st.markdown(f'**Źródło**: [{data_row["source"]}]({data_row["url"]})')
     claimed_source = data_row["claimed_source"]
     if isinstance(claimed_source, str):
-        claimed_source =claimed_source.split(":")
+        claimed_source = claimed_source.split(":")
         claimed_source = claimed_source[-1]
     else:
         claimed_source = _EMPTY
@@ -160,14 +211,20 @@ def add_row(data_row):
                 """,
         unsafe_allow_html=True,
     )
-    probability_fake_column, _ = st.columns(2)
+    probability_fake_column, hate_speach_column = st.columns(2)
     probability_fake_value = data_row.get("probability_fake")
     if probability_fake_value is not None:
         probability_fake_value *= 100
     with probability_fake_column:
         st.metric(
             "Pewność fake'a",
-            value=f'{probability_fake_value:.3g}%' if probability_fake_value is not None else _EMPTY
+            value=f"{probability_fake_value:.3g}%"
+            if probability_fake_value is not None
+            else _EMPTY,
+        )
+    with hate_speach_column:
+        st.markdown(
+            f'##### Obecność hate speach: {hate_speach_map[data_row["hate_speach"]]}'
         )
 
 
@@ -178,6 +235,7 @@ icon("search")
 st.markdown("### Wyszukaj")
 with st.form(key="form"):
     search = st.text_input("Search", placeholder="Search...")
+    date = st.text_input("Data", placeholder="20 listopada 2022.")
 
     category = st.multiselect(
         "Kategorie",
@@ -190,6 +248,18 @@ with st.form(key="form"):
         options=topics,
         key="temat",
         help="Wybierz tematy",
+    )
+    source = st.multiselect(
+        "Źródło",
+        options=sources,
+        key="source",
+        help="Wybierz źródło",
+    )
+    hate_speach = st.selectbox(
+        "Obecność hate speach",
+        options=hate_speach_options_to_labels.keys(),
+        key="hate_speach",
+        help="Status hate speach w artykułu."
     )
     probability_fake = st.slider(
         "Prawdopodobieństwo fake'a",
@@ -206,7 +276,17 @@ data_load_state = st.text("Loading data...")
 data_load_state.text("Done!")
 
 if submitted:
-    view = filter_data(data, {"search": search, "category": category, "probability_fake": probability_fake})
+    view = filter_data(
+        data,
+        {
+            "search": search,
+            "category": category,
+            "probability_fake": probability_fake,
+            "source": source,
+            "date": date,
+            "hate_speach": hate_speach,
+        },
+    )
     if not len(view):
         st.warning("Nie znaleziono artykułów.")
         st.stop()
