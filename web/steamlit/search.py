@@ -1,6 +1,4 @@
 from functools import reduce
-from random import random
-
 import streamlit as st
 import pandas as pd
 import os
@@ -26,7 +24,7 @@ _EMPTY = "(brak)"
 
 @st.cache
 def load_data():
-    data = pd.read_csv("./data/database_no_content.csv", lineterminator="\n")
+    data = pd.read_csv("./data/database_with_proba.csv", lineterminator="\n")
     data = data.dropna(subset=["summary"])
     data = data[~data["categories"].isnull()]
     data = data[~data["subjects"].isnull()]
@@ -37,31 +35,37 @@ def filter_data(data, query: dict):
     var = data
     if "search" in query:
         var = (
-            data[
+            var[
                 reduce(
                     lambda a, b: a & b,
                     [
-                        data["summary"].str.contains(word, case=False)
+                        var["summary"].str.contains(word, case=False)
                         for word in query["search"].split(" ")
                     ],
                 )
             ]
             if query["search"]
-            else data
+            else var
         )
     if "category" in query:
         var = (
-            data[
+            var[
                 reduce(
                     lambda a, b: a | b,
                     [
-                        data["categories"].str.contains(category_, case=False)
+                        var["categories"].str.contains(category_, case=False)
                         for category_ in query["category"]
                     ],
                 )
             ]
             if query["category"]
-            else data
+            else var
+        )
+    if "probability_fake" in query:
+        var = (
+            var[var["probability_fake"] < query["probability_fake"]]
+            if query["probability_fake"]
+            else var
         )
     return var
 
@@ -82,9 +86,12 @@ def icon(icon_name):
 def add_row(data_row):
     st.markdown("<hr/>", unsafe_allow_html=True)
     st.markdown(f'### {data_row["title"]}')
-    author, source, date, url = st.columns(4)
-    author = data_row["author"].split(":")
-    author = author[-1]
+    author = data_row["author"]
+    if isinstance(author, str):
+        author = author.split(":")
+        author = author[-1]
+    else:
+        author = _EMPTY
     st.markdown(
         f"""
           <h6 class="italic-text">{author or _EMPTY} </h6>
@@ -101,8 +108,12 @@ def add_row(data_row):
         unsafe_allow_html=True,
     )
     st.markdown(f'**Źródło**: [{data_row["source"]}]({data_row["url"]})')
-    claimed_source = data_row["claimed_source"].split(":")
-    claimed_source = claimed_source[-1]
+    claimed_source = data_row["claimed_source"]
+    if isinstance(claimed_source, str):
+        claimed_source =claimed_source.split(":")
+        claimed_source = claimed_source[-1]
+    else:
+        claimed_source = _EMPTY
 
     st.markdown(f"**Podane Źródło**: {claimed_source}")
     st.markdown("")
@@ -149,12 +160,14 @@ def add_row(data_row):
                 """,
         unsafe_allow_html=True,
     )
-    fake_probability, _ = st.columns(2)
-
-    with fake_probability:
+    probability_fake_column, _ = st.columns(2)
+    probability_fake_value = data_row.get("probability_fake")
+    if probability_fake_value is not None:
+        probability_fake_value *= 100
+    with probability_fake_column:
         st.metric(
-            "Prawdopodobieństwo fake'a",
-            value=f'{data_row.get("probability_fake", random() * 100):.3g}%'
+            "Pewność fake'a",
+            value=f'{probability_fake_value:.3g}%' if probability_fake_value is not None else _EMPTY
         )
 
 
@@ -178,7 +191,7 @@ with st.form(key="form"):
         key="temat",
         help="Wybierz tematy",
     )
-    st.slider(
+    probability_fake = st.slider(
         "Prawdopodobieństwo fake'a",
         min_value=0.0,
         max_value=1.0,
@@ -193,7 +206,7 @@ data_load_state = st.text("Loading data...")
 data_load_state.text("Done!")
 
 if submitted:
-    view = filter_data(data, {"search": search, "category": category})
+    view = filter_data(data, {"search": search, "category": category, "probability_fake": probability_fake})
     if not len(view):
         st.warning("Nie znaleziono artykułów.")
         st.stop()
