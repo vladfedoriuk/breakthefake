@@ -8,6 +8,14 @@ You need to download Polish language model from spacy:
 python3 -m spacy download pl_core_news_sm
 ```
 
+The trained models are in the `models` folder.
+The training script can be found in `notebooks/train_fake.ipynb` folder.
+
+### Model performance
+- accuracy on the test set: 0.76
+- recall on the test set: 0.52
+- precision on the test: 0.78
+
 ## Streamlit 
 ```bash 
 streamlit run ./web/steamlit/search.py --server.runOnSave true  

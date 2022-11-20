@@ -5,15 +5,16 @@ import pickle as pkl
 import glob
 import ujson
 from sklearn import svm
-
 """
 Inspired by https://github.com/karpathy/arxiv-sanity-lite/blob/master/serve.py
 """
 
 
 class Analyzer:
+
     def __init__(self, max_train: int = 5000) -> None:
         self.max_train = max_train
+        # get the stopwords for PL
         with open("data/stopwords.txt", "r") as f:
             self.stopwords = f.read().splitlines()
 
@@ -29,16 +30,17 @@ class Analyzer:
         print(f"Found {len(all_article_paths)} articles.")
         if training:
             shuffle(all_article_paths)
-            all_article_paths = all_article_paths[: self.max_train]
+            all_article_paths = all_article_paths[:self.max_train]
 
         for article in all_article_paths:
             article = ujson.load(open(article, "r"))
             # yield ' '.join([article['source'], article['content']])
             yield article["content"]
 
-    def create_global_corpus(
-        self, max_df: float = 0.1, min_df: float = 3, num: int = 20000
-    ) -> None:
+    def create_global_corpus(self,
+                             max_df: float = 0.1,
+                             min_df: float = 3,
+                             num: int = 20000) -> None:
         """Create a global corpus of all the articles."""
         v = TfidfVectorizer(
             input="content",
@@ -61,26 +63,31 @@ class Analyzer:
         v.fit(self.make_corpus(True))
         X = v.transform(self.make_corpus(False)).astype(np.float32)
         pkl.dump(
-            {"X": X, "vocab": v.vocabulary_, "idf": v.idf_},
+            {
+                "X": X,
+                "vocab": v.vocabulary_,
+                "idf": v.idf_
+            },
             open("data/global_corpus.pkl", "wb"),
         )
 
-    def construct_sets(self):
-        ...
-
     def load_features(self):
+        """Load the features from the global corpus."""
         feats = pkl.load(open("data/global_corpus.pkl", "rb"))
         X = feats["X"]
         y = np.zeros_like(X.shape[0])
         return X, y, feats["vocab"], feats["idf"]
 
     def rank_news(self, C: float = 0.01):
+        """Rank the news."""
         # classify
         X, y, vocab, idf = self.load_features()
 
-        clf = svm.LinearSVC(
-            class_weight="balanced", verbose=False, max_iter=10000, tol=1e-6, C=C
-        )
+        clf = svm.LinearSVC(class_weight="balanced",
+                            verbose=False,
+                            max_iter=10000,
+                            tol=1e-6,
+                            C=C)
         clf.fit(X, y)
         s = clf.decision_function(X)
         sortix = np.argsort(-s)
@@ -91,12 +98,10 @@ class Analyzer:
         sortix = np.argsort(-weights)
         words = []
         for ix in list(sortix[:40]) + list(sortix[-20:]):
-            words.append(
-                {
-                    "word": ivocab[ix],
-                    "weight": weights[ix],
-                }
-            )
+            words.append({
+                "word": ivocab[ix],
+                "weight": weights[ix],
+            })
         return scores, words
 
 

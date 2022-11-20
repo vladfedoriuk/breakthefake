@@ -24,12 +24,14 @@ DATABASE_PATH = './data/database_no_content.csv'
 
 @st.cache
 def load_data():
+    """Load the dataset"""
     data = pd.read_csv(DATASET_PATH)
     return data
 
 
 @st.cache
 def load_db():
+    """Load the database"""
     df = pd.read_csv(DATABASE_PATH, lineterminator='\n')
 
     def split_strip(string):
@@ -61,6 +63,7 @@ def load_db():
 
 
 def get_author_counts(db_view):
+    """Get the most common objects of fake news in the dataset"""
     counts = Counter(db_view['author'].str.lower())
     counts = {k: v for k, v in counts.most_common(N)}
     X = list(counts.keys())
@@ -69,6 +72,7 @@ def get_author_counts(db_view):
 
 
 def get_fake_valid_plot(db_view):
+    """Get the plot of fake vs valid news wrt to person mentioned"""
     fakes = db_view.loc[db_view['label'].isin(['Fałsz', 'Częściowy fałsz'])]
     valid = db_view.loc[db_view['label'].isin(['Prawda'])]
 
@@ -88,7 +92,7 @@ def get_fake_valid_plot(db_view):
 
 
 def get_category_counts(db_view):
-
+    """Get the most common categories in the dataset"""
     df = load_db()
     fig = px.bar(
         df,
