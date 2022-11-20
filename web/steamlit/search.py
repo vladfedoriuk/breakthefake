@@ -11,6 +11,8 @@ _EMPTY = "(brak)"
 def load_data():
     data = pd.read_csv("./data/database_no_content.csv", lineterminator="\n")
     data = data.dropna(subset=["summary"])
+    data = data[~data["categories"].isnull()]
+    data = data[~data["subjects"].isnull()]
     return data
 
 
@@ -57,7 +59,7 @@ def add_row(data_row):
     st.markdown("")
     st.markdown(f'{data_row["summary"]}')
 
-    st.markdown(f"##### Tags")
+    st.markdown(f"##### Tagi")
     tags = [x_.strip() for x_ in data_row["tags"].split(", ")]
 
     st.markdown(f'''
@@ -67,6 +69,30 @@ def add_row(data_row):
         )
         }
         ''',
+                unsafe_allow_html=True)
+
+    st.markdown(f"##### Kategorie")
+    categories = [x_.strip() for x_ in data_row["categories"].split(", ")]
+
+    st.markdown(f'''
+            {''.join(
+            f'<span class="tag tag-purple">{category.strip()}</span>'
+            for category in categories
+        )
+        }
+            ''',
+                unsafe_allow_html=True)
+
+    st.markdown(f"##### Tematy")
+    categories = [x_.strip() for x_ in data_row["subjects"].split(", ")]
+
+    st.markdown(f'''
+                {''.join(
+            f'<span class="tag tag-purple">{category.strip()}</span>'
+            for category in categories
+        )
+        }
+                ''',
                 unsafe_allow_html=True)
 
 
@@ -81,8 +107,8 @@ data_load_state.text("Done!")
 if button_clicked:
     view = filter_data(data, selected)
     with st.container():
-        st.markdown("## Top 10 artykułów")
-        for _, row in list(view.iterrows())[9:0:-1]:
+        st.markdown(f"## Top {MAX_ENTRIES} artykułów")
+        for _, row in list(view.iterrows())[MAX_ENTRIES:0:-1]:
             add_row(row)
 
 local_css(STYLE_SHEET)
