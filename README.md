@@ -12,6 +12,12 @@ python3 -m spacy download pl_core_news_sm
 streamlit run ./web/steamlit/search.py --server.runOnSave true  
 ```
 
+## Docker 
+To run the frontend in docker you need to build the image and run the container. 
+```bash
+docker build -t breakthefake .
+docker run -p 80:80 breakthefake
+```
 
 
 # TODO:
