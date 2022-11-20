@@ -12,14 +12,15 @@ def load_data():
     return data
 
 
-def topic_modelling_graph():
+def topic_modelling_graph(label="y_nmf"):
     data = load_data()
     X = np.asarray(data['X'])
     fig = go.Figure(data=go.Scatter(x=X[:, 0],
                                     y=X[:, 1],
                                     mode='markers',
+                                    text=data[label],
                                     marker=dict(
-                                        color=data['y_nmf'],
+                                        color=data[label],
                                         colorscale='Viridis',
                                     )))
     fig.update_layout(template='plotly_white',
