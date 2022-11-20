@@ -40,9 +40,11 @@ def add_row(data_row):
     st.markdown("<hr/>", unsafe_allow_html=True)
     st.markdown(f'### {data_row["title"]}')
     author, source, date, url = st.columns(4)
+    author = data_row["author"].split(":")
+    author = author[-1]
     st.markdown(
         f"""
-          <h6 class="italic-text">{data_row["author"] or _EMPTY} </h6>
+          <h6 class="italic-text">{author or _EMPTY} </h6>
           """,
         unsafe_allow_html=True,
     )
@@ -56,6 +58,10 @@ def add_row(data_row):
         unsafe_allow_html=True,
     )
     st.markdown(f'**Źródło**: [{data_row["source"]}]({data_row["url"]})')
+    claimed_source = data_row["claimed_source"].split(":")
+    claimed_source = claimed_source[-1]
+
+    st.markdown(f'**Podane Źródło**: {claimed_source}')
     st.markdown("")
     st.markdown(f'{data_row["summary"]}')
 
