@@ -21,6 +21,12 @@ hate_speach_map = {
     "UNKNOWN": ":question:",
 }
 
+hate_speach_options_to_labels = {
+    "obecna": "HATE",
+    "nieobecna": "NON_HATE",
+    "niewiadomo": "UNKNOWN",
+}
+
 sources = {"demagog", "pch24", "tvp", "wpolityce", "wgospodarce", "wp"}
 
 topics = pd.read_excel("data/categories.XLSX")["Unnamed: 2"].values[1:]
@@ -109,6 +115,9 @@ def filter_data(data, query: dict):
                 )
             )
         ]
+    if "hate_speach" in query and query["hate_speach"]:
+        var = var[var["hate_speach"] == hate_speach_options_to_labels[query["hate_speach"]]]
+
     return var
 
 
@@ -246,6 +255,12 @@ with st.form(key="form"):
         key="source",
         help="Wybierz źródło",
     )
+    hate_speach = st.selectbox(
+        "Obecność hate speach",
+        options=hate_speach_options_to_labels.keys(),
+        key="hate_speach",
+        help="Status hate speach w artykułu."
+    )
     probability_fake = st.slider(
         "Prawdopodobieństwo fake'a",
         min_value=0.0,
@@ -269,6 +284,7 @@ if submitted:
             "probability_fake": probability_fake,
             "source": source,
             "date": date,
+            "hate_speach": hate_speach,
         },
     )
     if not len(view):
