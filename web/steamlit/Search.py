@@ -44,7 +44,7 @@ sources = {"demagog", "pch24", "tvp", "wpolityce", "wgospodarce", "wp"}
 topics = pd.read_excel("data/categories.XLSX")["Unnamed: 2"].values[1:]
 
 STYLE_SHEET = os.path.join(os.path.dirname(__file__), "style.css")
-MAX_ENTRIES = 20
+MAX_ENTRIES = 30
 _EMPTY = "(brak)"
 
 
@@ -63,9 +63,9 @@ def filter_data(data, query: dict):
         var = (
             var[
                 reduce(
-                    lambda a, b: a & b,
+                    lambda a, b: a | b,
                     [
-                        var["summary"].str.contains(word, case=False, na=False)
+                        var["summary"].str.contains(word.lower(), case=False, na=False)
                         for word in query["search"].split(" ")
                     ],
                 )
@@ -79,7 +79,7 @@ def filter_data(data, query: dict):
                 reduce(
                     lambda a, b: a | b,
                     [
-                        var["categories"].str.contains(category_, case=False, na=False)
+                        var["categories"].str.contains(category_.lower(), case=False, na=False)
                         for category_ in query["category"]
                     ],
                 )
@@ -99,7 +99,7 @@ def filter_data(data, query: dict):
                 reduce(
                     lambda a, b: a | b,
                     [
-                        var["source"].str.contains(source_, case=False, na=False)
+                        var["source"].str.contains(source_.lower(), case=False, na=False)
                         for source_ in query["source"]
                     ],
                 )
@@ -108,7 +108,7 @@ def filter_data(data, query: dict):
                 reduce(
                     lambda a, b: a | b,
                     [
-                        var["url"].str.contains(source_, case=False, na=False)
+                        var["url"].str.contains(source_.lower(), case=False, na=False)
                         for source_ in query["source"]
                     ],
                 )
@@ -121,7 +121,7 @@ def filter_data(data, query: dict):
                 reduce(
                     lambda a, b: a & b,
                     [
-                        var["date"].str.contains(date_, case=False, na=False)
+                        var["date"].str.contains(date_.lower(), case=False, na=False)
                         for date_ in date_query
                     ],
                 )
@@ -246,7 +246,6 @@ def add_row(data_row):
 
 
 data = load_data()
-print(data.columns)
 
 icon("search")
 st.markdown("### Wyszukaj")
