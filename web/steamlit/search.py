@@ -151,6 +151,7 @@ def add_row(data_row):
 
 
 data = load_data()
+print(data.columns)
 
 icon("search")
 st.markdown("### Wyszukaj")
