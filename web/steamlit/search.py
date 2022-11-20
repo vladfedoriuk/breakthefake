@@ -1,4 +1,5 @@
 from functools import reduce
+from random import random
 
 import streamlit as st
 import pandas as pd
@@ -45,7 +46,7 @@ def filter_data(data, query: dict):
                     ],
                 )
             ]
-            if query["category"]
+            if query["search"]
             else data
         )
     if "category" in query:
@@ -148,6 +149,13 @@ def add_row(data_row):
                 """,
         unsafe_allow_html=True,
     )
+    fake_probability, _ = st.columns(2)
+
+    with fake_probability:
+        st.metric(
+            "Prawdopodobieństwo fake'a",
+            value=f'{data_row.get("probability_fake", random() * 100):.3g}%'
+        )
 
 
 data = load_data()
@@ -186,6 +194,9 @@ data_load_state.text("Done!")
 
 if submitted:
     view = filter_data(data, {"search": search, "category": category})
+    if not len(view):
+        st.warning("Nie znaleziono artykułów.")
+        st.stop()
     with st.container():
         st.markdown(f"## Top {MAX_ENTRIES} artykułów")
         for _, row in list(view.iterrows())[MAX_ENTRIES:0:-1]:
