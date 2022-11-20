@@ -3,7 +3,6 @@ import json
 
 
 class ArticleElement:
-
     def __init__(self, data):
         # data in JSON - to string
         # self.data = json.loads(data)
@@ -18,11 +17,11 @@ class ArticleElement:
             #     html.H5(self.data['author']),
             # ]
             children=[
-                html.H4(self.data['title']),
+                html.H4(self.data["title"]),
                 html.Br(),
                 # html.H5(self.data['claimed_source'] + ', ' + self.data['date']),
                 # html.Br(),
-                html.H5(self.data['author']),
+                html.H5(self.data["author"]),
                 html.Br(),
             ]
         )

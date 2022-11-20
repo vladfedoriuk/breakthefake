@@ -19,19 +19,19 @@ ARTICLE_SRC = "data/tvp_articles/*.json"
 ARTICLE_DST = "data/database.csv"
 emoji_pattern = re.compile(
     "["
-    u"\U0001F600-\U0001F64F"  # emoticons
-    u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-    u"\U0001F680-\U0001F6FF"  # transport & map symbols
-    u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+    "\U0001F600-\U0001F64F"  # emoticons
+    "\U0001F300-\U0001F5FF"  # symbols & pictographs
+    "\U0001F680-\U0001F6FF"  # transport & map symbols
+    "\U0001F1E0-\U0001F1FF"  # flags (iOS)
     "]+",
-    flags=re.UNICODE)
+    flags=re.UNICODE,
+)
 to_remove = [
-    'Prezydent Andrzej Duda w Przewodowie Święto Niepodległości Prezydent kibicował skoczkom Premier w bazie lotnictwa w Łasku Wizyta prezydenta w CSAiU w Toruniu Inauguracja roku na UE w Krakowie Akcja #sadziMY z udziałem prezydenta Symboliczne otwarcie Baltic Pipe Święto „Wdzięczni Polskiej Wsi” Prezydent na sesji ONZ'
+    "Prezydent Andrzej Duda w Przewodowie Święto Niepodległości Prezydent kibicował skoczkom Premier w bazie lotnictwa w Łasku Wizyta prezydenta w CSAiU w Toruniu Inauguracja roku na UE w Krakowie Akcja #sadziMY z udziałem prezydenta Symboliczne otwarcie Baltic Pipe Święto „Wdzięczni Polskiej Wsi” Prezydent na sesji ONZ"
 ]
 
 
 class MetadataExtractor:
-
     def __init__(self, max_phrases: int = 5, max_sents: int = 3) -> None:
         self.max_phrases = max_phrases
         self.max_sents = max_sents
@@ -39,11 +39,11 @@ class MetadataExtractor:
 
     def clean_text(self, text: str) -> str:
         forbidden_chars = (
-            '\n',
-            '-',
-            '– ',
-            '@',
-            '+',
+            "\n",
+            "-",
+            "– ",
+            "@",
+            "+",
             *to_remove,
         )  # watch out for the - it's U+2013
         for char in forbidden_chars:
@@ -63,21 +63,21 @@ class MetadataExtractor:
             print(article_json_filename)
             return None
         article_text = self.clean_text(article_doc["content"])
-        for k in ('author', 'date'):
+        for k in ("author", "date"):
             article_doc[k] = article_doc[k].strip()
-        article_doc['content'] = article_text
+        article_doc["content"] = article_text
         doc = nlp(article_doc["content"][:MAX_LEN])
-        article_doc['tags'] = self.tag_document(doc)
-        article_doc['summary'] = self.extract_summary(doc).replace("  ", " ")
+        article_doc["tags"] = self.tag_document(doc)
+        article_doc["summary"] = self.extract_summary(doc).replace("  ", " ")
         cats, subjects = self.find_categories(article_text)
-        article_doc['categories'] = cats
-        article_doc['subjects'] = subjects
+        article_doc["categories"] = cats
+        article_doc["subjects"] = subjects
         return article_doc
 
     def tag_document(self, doc: spacy.tokens.Doc) -> List[str]:
         """Extract the most important phrases from the article."""
         tags = []
-        for phrase in doc._.phrases[:self.max_phrases]:
+        for phrase in doc._.phrases[: self.max_phrases]:
             tags.append(phrase.text)
         return ", ".join(set(tags))
 
@@ -101,15 +101,14 @@ class MetadataExtractor:
             sum_sq = 0.0
             for phrase_id in range(len(unit_vector)):
                 if phrase_id not in sent_vector:
-                    sum_sq += unit_vector[phrase_id]**2.0
+                    sum_sq += unit_vector[phrase_id] ** 2.0
 
             sent_rank[sent_id] = math.sqrt(sum_sq)
             sent_id += 1
         sent_rank = sorted(sent_rank.items(), key=lambda x: x[1], reverse=True)
         all_sents = list(doc.sents)
         sent_text = {
-            idx: all_sents[idx].text
-            for (idx, _) in sent_rank[:self.max_sents]
+            idx: all_sents[idx].text for (idx, _) in sent_rank[: self.max_sents]
         }
         return " ".join(sent_text.values())
 
@@ -127,93 +126,133 @@ class MetadataExtractor:
 
     def extract_categories_rgx(self):
         minsterstwo = [
-            'ministerstwo', 'minister', 'ministrowi', 'ministrze', 'ministrów',
-            'ministerstwu', 'ministerstwie', 'ministerstwa'
+            "ministerstwo",
+            "minister",
+            "ministrowi",
+            "ministrze",
+            "ministrów",
+            "ministerstwu",
+            "ministerstwie",
+            "ministerstwa",
         ]
-        wiceminister = ['wice' + x for x in minsterstwo]
+        wiceminister = ["wice" + x for x in minsterstwo]
         rzecznik = [
-            'rzecznik',
-            'rzecznika',
-            'rzecznikowi',
-            'rzeczniczce',
-            'rzeczniczka',
+            "rzecznik",
+            "rzecznika",
+            "rzecznikowi",
+            "rzeczniczce",
+            "rzeczniczka",
         ]
 
         categories = {
-            'Ministerstwo Finansów': [
-                'MF',
-                'GIIF',
-                'Generalny Inspektor Informacji Finansowej',
-                'Generalnego Inspektoratu Informacji Finansowej',
+            "Ministerstwo Finansów": [
+                "MF",
+                "GIIF",
+                "Generalny Inspektor Informacji Finansowej",
+                "Generalnego Inspektoratu Informacji Finansowej",
                 *[x + " finansów" for x in minsterstwo],
                 *[x + " finansów" for x in wiceminister],
                 *[x + " finansów" for x in rzecznik],
                 *[x + " MF" for x in rzecznik],
             ],
-            'Finanse publiczne': [
-                'finanse publiczne', 'budżet', 'budżetu', 'budżetem',
-                'budżetowi', 'budżetach', 'finansów publicznych',
-                'finansów publicznego', 'finansów publicznego',
-                'finansów publicznym', 'finansów publicznymi',
-                'dług publiczny', 'długu publicznego', 'SRW', 'obligacje',
-                'obligacje skarbowe', 'obligacji skarbowych', 'obligacji',
-                'deficyt', 'deficytowi', 'hazard'
+            "Finanse publiczne": [
+                "finanse publiczne",
+                "budżet",
+                "budżetu",
+                "budżetem",
+                "budżetowi",
+                "budżetach",
+                "finansów publicznych",
+                "finansów publicznego",
+                "finansów publicznego",
+                "finansów publicznym",
+                "finansów publicznymi",
+                "dług publiczny",
+                "długu publicznego",
+                "SRW",
+                "obligacje",
+                "obligacje skarbowe",
+                "obligacji skarbowych",
+                "obligacji",
+                "deficyt",
+                "deficytowi",
+                "hazard",
             ],
-            'Podatki': [
-                'podatki',
-                'podatków',
-                'podatku',
-                'podatkiem',
-                'podatkach',
-                'CIT',
-                'PIT',
-                'VAT',
-                'akcyza',
-                'akcyzie',
-                'cło',
-                'cłach',
+            "Podatki": [
+                "podatki",
+                "podatków",
+                "podatku",
+                "podatkiem",
+                "podatkach",
+                "CIT",
+                "PIT",
+                "VAT",
+                "akcyza",
+                "akcyzie",
+                "cło",
+                "cłach",
             ],
-            'Administracja': [
-                'KAS', 'administracja skarbowa', 'administracji skarbowej',
-                'skarbowy', 'celna', 'celno-skarbowa', 'celno-skarbowej'
+            "Administracja": [
+                "KAS",
+                "administracja skarbowa",
+                "administracji skarbowej",
+                "skarbowy",
+                "celna",
+                "celno-skarbowa",
+                "celno-skarbowej",
             ],
-            'KPO': ['kpo', 'krajowy plan odbudowy'],
-            'Projekty': [
-                'e-pit',
-                'epit',
-                'e-podatki',
-                'epodatki',
-                'e-podatków',
-                'epodatków',
-                'e-podatku',
-                'epodatku',
-                'e-podatkiem',
-                'epodatkiem',
-                'polski ład',
-                'podatek reklamowy',
-                'podatek od reklam',
-                'podatku od reklam',
-                'podatku reklamowego',
-                'finansoaktywni',
-                'polska agencja nadzoru finansowego',
-                'polska agencja nadzoru audytowego',
-                'wakacje kredytowe',
+            "KPO": ["kpo", "krajowy plan odbudowy"],
+            "Projekty": [
+                "e-pit",
+                "epit",
+                "e-podatki",
+                "epodatki",
+                "e-podatków",
+                "epodatków",
+                "e-podatku",
+                "epodatku",
+                "e-podatkiem",
+                "epodatkiem",
+                "polski ład",
+                "podatek reklamowy",
+                "podatek od reklam",
+                "podatku od reklam",
+                "podatku reklamowego",
+                "finansoaktywni",
+                "polska agencja nadzoru finansowego",
+                "polska agencja nadzoru audytowego",
+                "wakacje kredytowe",
             ],
-            'Instytucje': [
-                'nbp', 'bank centralny', 'banku centralnego',
-                'narodowy bank polski', 'MFW',
-                'międzynarodowy fundusz walutowy',
-                'międzynarodowego funduszu walutowego',
-                'komisja nadzoru finansowego', 'komisji nadzoru finansowego',
-                'KNF'
+            "Instytucje": [
+                "nbp",
+                "bank centralny",
+                "banku centralnego",
+                "narodowy bank polski",
+                "MFW",
+                "międzynarodowy fundusz walutowy",
+                "międzynarodowego funduszu walutowego",
+                "komisja nadzoru finansowego",
+                "komisji nadzoru finansowego",
+                "KNF",
             ],
-            'Opłaty': ['e-toll', 'etoll', 'viatoll', 'e-myto', 'emyto'],
-            'Przedstawiciele MF': [
-                'Rzeczkowska', 'Rzecznik Prasowy MF', 'Rzecznik Finansów',
-                'Rzecznik Finansów Publicznych', 'Chałupa', 'Patkowski',
-                'Skuza', 'Czernicki', 'Szwarc', 'Gojny', 'Soboń', 'Szweda',
-                'Zbaraszczuk', 'Pasieczyńska', 'Dudek'
-            ]
+            "Opłaty": ["e-toll", "etoll", "viatoll", "e-myto", "emyto"],
+            "Przedstawiciele MF": [
+                "Rzeczkowska",
+                "Rzecznik Prasowy MF",
+                "Rzecznik Finansów",
+                "Rzecznik Finansów Publicznych",
+                "Chałupa",
+                "Patkowski",
+                "Skuza",
+                "Czernicki",
+                "Szwarc",
+                "Gojny",
+                "Soboń",
+                "Szweda",
+                "Zbaraszczuk",
+                "Pasieczyńska",
+                "Dudek",
+            ],
         }
 
         regex_cats = {}
@@ -228,14 +267,14 @@ if __name__ == "__main__":
     extractor = MetadataExtractor()
     articles = []
     all_sources = [
-        'data/tvp_articles',
-        'data/wp_articles',
-        'data/pch24_articles',
-        'data/wpolityce_articles',
+        "data/tvp_articles",
+        "data/wp_articles",
+        "data/pch24_articles",
+        "data/wpolityce_articles",
     ]
     all_article_paths = []
     for src in all_sources:
-        all_article_paths.extend(glob.glob(f'{src}/*.json')[:MAX_PER_SOURCE])
+        all_article_paths.extend(glob.glob(f"{src}/*.json")[:MAX_PER_SOURCE])
     # random.shuffle(all_article_paths)
     for json_path in tqdm(all_article_paths):
         new_article = extractor(json_path)

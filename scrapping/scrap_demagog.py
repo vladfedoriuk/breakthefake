@@ -36,7 +36,9 @@ def download_all_pages():
                 break
             create_path_if_not_exist(f"scrapping/demagog/{topic}")
             create_path_if_not_exist(f"scrapping/demagog/{topic}/{page}")
-            with open(f"scrapping/demagog/{topic}/{page}/page.html", "w", encoding="utf-8") as file:
+            with open(
+                f"scrapping/demagog/{topic}/{page}/page.html", "w", encoding="utf-8"
+            ) as file:
                 file.write(html)
             page += 1
 
@@ -50,7 +52,9 @@ def get_links_and_labels():
                 articles = page_soup.find_all("article")
                 for article in articles:
                     label = article.find("div", class_="post-label")
-                    links = article.select(".border, .border-primary, .d-block, .photo-article")
+                    links = article.select(
+                        ".border, .border-primary, .d-block, .photo-article"
+                    )
                     if not links:
                         continue
                     link = links[0]["href"]
@@ -73,13 +77,18 @@ def fetch_link(link: str):
         title = soup.find("h1", class_="w-100 mb-1").get_text()
         data["title"] = title
         date = soup.find("p", class_="date w-100").get_text()
-        data["date"] =date
+        data["date"] = date
         try:
-            author = soup.find("div", class_="h2 person-name mt-0 count-text").get_text()
+            author = soup.find(
+                "div", class_="h2 person-name mt-0 count-text"
+            ).get_text()
         except:
             author = ""
         data["author"] = author
-        container = soup.find("div", class_="row-custom col-12 px-0 pb-5 big-txt-2 content-editor target-blank count-text")
+        container = soup.find(
+            "div",
+            class_="row-custom col-12 px-0 pb-5 big-txt-2 content-editor target-blank count-text",
+        )
         texts = []
         for span in container.find_all("span"):
             text = span.get_text()
@@ -101,13 +110,12 @@ def scrap_single_pages():
             pass
     df = pandas.DataFrame(
         columns=["source", "url", "date", "author", "title", "content", "label"],
-        data=data
+        data=data,
     )
     df.to_csv("scrapping/demagog/dataset.csv")
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     # print(next(iter(get_links_and_labels())))
     # generate_links_labels()
     scrap_single_pages()
