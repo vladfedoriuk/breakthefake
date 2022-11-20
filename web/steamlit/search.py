@@ -202,7 +202,7 @@ def add_row(data_row):
         probability_fake_value *= 100
     with probability_fake_column:
         st.metric(
-            "Pewność fake'a",
+            "Prawdopodobieństwo fake'a",
             value=f"{probability_fake_value:.3g}%"
             if probability_fake_value is not None
             else _EMPTY,
@@ -237,7 +237,7 @@ with st.form(key="form"):
         help="Wybierz źródło",
     )
     probability_fake = st.slider(
-        "Prawdopodobieństwo fake'a",
+        "Prawdopodobieństwo fake'a (mniej niż %)",
         min_value=0.0,
         max_value=1.0,
         value=0.7,
