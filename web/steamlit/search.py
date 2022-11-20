@@ -10,6 +10,7 @@ _EMPTY = "(brak)"
 @st.cache
 def load_data():
     data = pd.read_csv("./data/database.csv", lineterminator="\n")
+    data = data[~data["categories"].isnull()]
     return data
 
 
@@ -50,7 +51,7 @@ def add_row(data_row):
     st.markdown("")
     st.markdown(f'{data_row["summary"]}')
 
-    st.markdown(f"##### Tags")
+    st.markdown(f"##### Tagi")
     tags = [x_.strip() for x_ in data_row["tags"].split(", ")]
 
     st.markdown(
@@ -61,6 +62,20 @@ def add_row(data_row):
         )
         }
         ''',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(f"##### Kategorie")
+    categories = [x_.strip() for x_ in data_row["categories"].split(", ")]
+
+    st.markdown(
+        f'''
+            {''.join(
+            f'<span class="tag tag-purple">{category.strip()}</span>'
+            for category in categories
+        )
+        }
+            ''',
         unsafe_allow_html=True
     )
 
