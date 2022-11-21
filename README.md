@@ -61,13 +61,13 @@ docker run -p 80:80 lemurpwned/hack-news:$VERSION
 # TODO:
 
 - [x] Docker 
-- [ ] Wizualizacja danych (Bar chart do tagów) (stacked bar chart do tagów i kategorii w zalenośi od źródła) - IN PROGRESS - Piotr
+- [x] Wizualizacja danych (Bar chart do tagów) (stacked bar chart do tagów i kategorii w zalenośi od źródła) - IN PROGRESS - Piotr
 - [x] % fake news per źródło 
 - [ ] Regex na znane wyraenia indykujące fake news 
 - [ ] Korleacje między newsami 
 - [x] Analiza sentymentu [Piotr]
-- [ ] Frontend: ma wyświetlac prawdopodobienstwo fake news + sentyment + tagi + kategorie + źródło + data + tytuł + treść [Władek]
+- [x] Frontend: ma wyświetlac prawdopodobienstwo fake news + sentyment + tagi + kategorie + źródło + data + tytuł + treść [Władek]
 
 - [x] Kto odpowiada za najwiecej fake news -- z demagoga? Top kłamczuszków xd
 - [ ] Najbardziej wydatne słowa przy fake news.
-- [ ] hate speech classification - IN PROGRESS - VLAD
+- [x] hate speech classification - IN PROGRESS - VLAD
